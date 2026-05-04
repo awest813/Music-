@@ -12,6 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PlaylistsIndexRouteImport } from './routes/playlists/index'
+import { Route as PlaylistsPlaylistIdRouteImport } from './routes/playlists/$playlistId'
+import { Route as FavoritesTracksRouteImport } from './routes/favorites/tracks'
+import { Route as FavoritesArtistsRouteImport } from './routes/favorites/artists'
+import { Route as FavoritesAlbumsRouteImport } from './routes/favorites/albums'
 
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
@@ -28,35 +33,105 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlaylistsIndexRoute = PlaylistsIndexRouteImport.update({
+  id: '/playlists/',
+  path: '/playlists/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlaylistsPlaylistIdRoute = PlaylistsPlaylistIdRouteImport.update({
+  id: '/playlists/$playlistId',
+  path: '/playlists/$playlistId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FavoritesTracksRoute = FavoritesTracksRouteImport.update({
+  id: '/favorites/tracks',
+  path: '/favorites/tracks',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FavoritesArtistsRoute = FavoritesArtistsRouteImport.update({
+  id: '/favorites/artists',
+  path: '/favorites/artists',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FavoritesAlbumsRoute = FavoritesAlbumsRouteImport.update({
+  id: '/favorites/albums',
+  path: '/favorites/albums',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/search': typeof SearchRoute
+  '/favorites/albums': typeof FavoritesAlbumsRoute
+  '/favorites/artists': typeof FavoritesArtistsRoute
+  '/favorites/tracks': typeof FavoritesTracksRoute
+  '/playlists/$playlistId': typeof PlaylistsPlaylistIdRoute
+  '/playlists/': typeof PlaylistsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/search': typeof SearchRoute
+  '/favorites/albums': typeof FavoritesAlbumsRoute
+  '/favorites/artists': typeof FavoritesArtistsRoute
+  '/favorites/tracks': typeof FavoritesTracksRoute
+  '/playlists/$playlistId': typeof PlaylistsPlaylistIdRoute
+  '/playlists': typeof PlaylistsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/search': typeof SearchRoute
+  '/favorites/albums': typeof FavoritesAlbumsRoute
+  '/favorites/artists': typeof FavoritesArtistsRoute
+  '/favorites/tracks': typeof FavoritesTracksRoute
+  '/playlists/$playlistId': typeof PlaylistsPlaylistIdRoute
+  '/playlists/': typeof PlaylistsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/search'
+  fullPaths:
+    | '/'
+    | '/dashboard'
+    | '/search'
+    | '/favorites/albums'
+    | '/favorites/artists'
+    | '/favorites/tracks'
+    | '/playlists/$playlistId'
+    | '/playlists/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/search'
-  id: '__root__' | '/' | '/dashboard' | '/search'
+  to:
+    | '/'
+    | '/dashboard'
+    | '/search'
+    | '/favorites/albums'
+    | '/favorites/artists'
+    | '/favorites/tracks'
+    | '/playlists/$playlistId'
+    | '/playlists'
+  id:
+    | '__root__'
+    | '/'
+    | '/dashboard'
+    | '/search'
+    | '/favorites/albums'
+    | '/favorites/artists'
+    | '/favorites/tracks'
+    | '/playlists/$playlistId'
+    | '/playlists/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRoute
   SearchRoute: typeof SearchRoute
+  FavoritesAlbumsRoute: typeof FavoritesAlbumsRoute
+  FavoritesArtistsRoute: typeof FavoritesArtistsRoute
+  FavoritesTracksRoute: typeof FavoritesTracksRoute
+  PlaylistsPlaylistIdRoute: typeof PlaylistsPlaylistIdRoute
+  PlaylistsIndexRoute: typeof PlaylistsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +157,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/playlists/': {
+      id: '/playlists/'
+      path: '/playlists'
+      fullPath: '/playlists/'
+      preLoaderRoute: typeof PlaylistsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/playlists/$playlistId': {
+      id: '/playlists/$playlistId'
+      path: '/playlists/$playlistId'
+      fullPath: '/playlists/$playlistId'
+      preLoaderRoute: typeof PlaylistsPlaylistIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/favorites/tracks': {
+      id: '/favorites/tracks'
+      path: '/favorites/tracks'
+      fullPath: '/favorites/tracks'
+      preLoaderRoute: typeof FavoritesTracksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/favorites/artists': {
+      id: '/favorites/artists'
+      path: '/favorites/artists'
+      fullPath: '/favorites/artists'
+      preLoaderRoute: typeof FavoritesArtistsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/favorites/albums': {
+      id: '/favorites/albums'
+      path: '/favorites/albums'
+      fullPath: '/favorites/albums'
+      preLoaderRoute: typeof FavoritesAlbumsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +199,11 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
   SearchRoute: SearchRoute,
+  FavoritesAlbumsRoute: FavoritesAlbumsRoute,
+  FavoritesArtistsRoute: FavoritesArtistsRoute,
+  FavoritesTracksRoute: FavoritesTracksRoute,
+  PlaylistsPlaylistIdRoute: PlaylistsPlaylistIdRoute,
+  PlaylistsIndexRoute: PlaylistsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
