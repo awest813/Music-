@@ -25,6 +25,10 @@ const isEnumDefinition = (
   def: SettingDefinition,
 ): def is EnumSettingDefinition => def.kind === 'enum';
 
+const DEFAULT_MIN = 0;
+const DEFAULT_MAX = 100;
+const DEFAULT_STEP = 1;
+
 export const SettingField: FC<SettingFieldProps> = ({
   definition,
   value,
@@ -40,10 +44,6 @@ export const SettingField: FC<SettingFieldProps> = ({
     translateField,
   } = useSettingTranslation(definition);
   const widgetType = definition.widget?.type;
-
-  const DEFAULT_MIN = 0;
-  const DEFAULT_MAX = 100;
-  const DEFAULT_STEP = 1;
 
   const renderers: Record<string, () => JSX.Element> = {
     toggle: () => (

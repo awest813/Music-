@@ -17,5 +17,5 @@ export const useSettingsHost = (definition: SettingDefinition): SettingsHost => 
       return createPluginSettingsHost(source.pluginId, source.pluginName);
     }
     return coreSettingsHost;
-  }, [source?.type, source?.type === 'plugin' ? source.pluginId : undefined]);
+  }, [source?.type, source?.pluginId]);
 };
