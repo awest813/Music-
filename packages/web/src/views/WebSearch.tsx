@@ -1,3 +1,4 @@
+import { useNavigate } from '@tanstack/react-router';
 import { SearchIcon } from 'lucide-react';
 import { FC } from 'react';
 
@@ -46,6 +47,7 @@ export const WebSearchContent: FC<WebSearchContentProps> = ({
   refetch,
 }) => {
   const { t } = useTranslation(['search', 'common']);
+  const navigate = useNavigate();
   const { addToQueue } = useQueueActions();
 
   if (!provider) {
@@ -72,23 +74,6 @@ export const WebSearchContent: FC<WebSearchContentProps> = ({
   }
 
   const tabsItems = [
-    results?.tracks && {
-      id: 'tracks',
-      label: t('search:results.tracks'),
-      content: (
-        <CardGrid>
-          {results.tracks.map((track) => (
-            <Card
-              key={track.source.id}
-              title={track.title}
-              subtitle={track.artists[0]?.name}
-              src={pickArtwork(track.artwork, 'thumbnail', 300)?.url}
-              onClick={() => addToQueue([track])}
-            />
-          ))}
-        </CardGrid>
-      ),
-    },
     results?.albums && {
       id: 'albums',
       label: t('search:results.albums'),
@@ -99,6 +84,9 @@ export const WebSearchContent: FC<WebSearchContentProps> = ({
               key={item.source.id}
               title={item.title}
               src={pickArtwork(item.artwork, 'cover', 300)?.url}
+              onClick={() =>
+                navigate({ to: `/album/${provider!.id}/${item.source.id}` })
+              }
             />
           ))}
         </CardGrid>
@@ -114,6 +102,26 @@ export const WebSearchContent: FC<WebSearchContentProps> = ({
               key={item.source.id}
               title={item.name}
               src={pickArtwork(item.artwork, 'cover', 300)?.url}
+              onClick={() =>
+                navigate({ to: `/artist/${provider!.id}/${item.source.id}` })
+              }
+            />
+          ))}
+        </CardGrid>
+      ),
+    },
+    results?.tracks && {
+      id: 'tracks',
+      label: t('search:results.tracks'),
+      content: (
+        <CardGrid>
+          {results.tracks.map((track) => (
+            <Card
+              key={track.source.id}
+              title={track.title}
+              subtitle={track.artists[0]?.name}
+              src={pickArtwork(track.artwork, 'thumbnail', 300)?.url}
+              onClick={() => addToQueue([track])}
             />
           ))}
         </CardGrid>
