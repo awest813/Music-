@@ -1,10 +1,11 @@
+import { DEFAULT_NUCLEAR_SERVER_URL } from './constants';
 import type { Platform, PlatformStorageStore } from './types';
 
 const DB_NAME = 'nuclear-web-platform';
 const DB_VERSION = 1;
 const STORE_NAME = 'stores';
 const SERVER_URL =
-  import.meta.env.VITE_NUCLEAR_SERVER_URL ?? 'http://localhost:3473';
+  import.meta.env.VITE_NUCLEAR_SERVER_URL ?? DEFAULT_NUCLEAR_SERVER_URL;
 
 const openDatabase = (): Promise<IDBDatabase> =>
   new Promise((resolve, reject) => {

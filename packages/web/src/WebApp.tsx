@@ -1,6 +1,9 @@
 import { FC, useMemo } from 'react';
 
-import { usePlatform } from '@nuclearplayer/platform';
+import {
+  DEFAULT_NUCLEAR_SERVER_URL,
+  usePlatform,
+} from '@nuclearplayer/platform';
 import { Badge, Box, Button, Toaster } from '@nuclearplayer/ui';
 
 const FEATURES = [
@@ -56,7 +59,8 @@ export const WebApp: FC = () => {
           <h2 className="font-heading text-2xl font-bold">Runtime status</h2>
           <p>
             Backend URL:{' '}
-            {import.meta.env.VITE_NUCLEAR_SERVER_URL ?? 'http://localhost:3473'}
+            {import.meta.env.VITE_NUCLEAR_SERVER_URL ??
+              DEFAULT_NUCLEAR_SERVER_URL}
           </p>
           <p>Desktop-only capabilities disabled: {unsupported.join(', ')}</p>
           <div>

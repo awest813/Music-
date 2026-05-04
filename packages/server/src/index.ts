@@ -7,10 +7,24 @@ import { pipeline } from 'node:stream/promises';
 import type { ReadableStream } from 'node:stream/web';
 
 const DEFAULT_PORT = 3473;
-const PORT = Number(process.env.PORT ?? DEFAULT_PORT);
+const parsePort = (value: string | undefined): number => {
+  const parsed = Number(value ?? DEFAULT_PORT);
+  if (!Number.isInteger(parsed) || parsed < 1 || parsed > 65_535) {
+    return DEFAULT_PORT;
+  }
+  return parsed;
+};
+
+const PORT = parsePort(process.env.PORT);
 const YTDLP_BINARY = process.env.YTDLP_BINARY ?? 'yt-dlp';
 const FILE_ROOT = resolve(
   process.env.NUCLEAR_WEB_FILE_ROOT ?? '.nuclear-web-data',
+);
+const PROXY_ALLOWED_HOSTS = new Set(
+  (process.env.NUCLEAR_WEB_PROXY_ALLOWED_HOSTS ?? '')
+    .split(',')
+    .map((host) => host.trim().toLowerCase())
+    .filter(Boolean),
 );
 
 const json = (
@@ -37,7 +51,7 @@ const readBody = async (request: IncomingMessage): Promise<unknown> => {
 };
 
 const runYtdlp = (args: string[]): Promise<string> =>
-  new Promise((resolvePromise, reject) => {
+  new Promise((resolve, reject) => {
     const child = spawn(YTDLP_BINARY, args, {
       stdio: ['ignore', 'pipe', 'pipe'],
     });
@@ -47,7 +61,7 @@ const runYtdlp = (args: string[]): Promise<string> =>
     child.stderr.on('data', (chunk: Buffer) => stderr.push(chunk));
     child.on('close', (code) => {
       if (code === 0) {
-        resolvePromise(Buffer.concat(stdout).toString('utf8'));
+        resolve(Buffer.concat(stdout).toString('utf8'));
         return;
       }
       reject(new Error(Buffer.concat(stderr).toString('utf8')));
@@ -58,11 +72,15 @@ const runYtdlp = (args: string[]): Promise<string> =>
 const stream = async (
   request: IncomingMessage,
   response: ServerResponse,
-  url: string,
+  mediaUrl: string,
 ): Promise<void> => {
-  const child = spawn(YTDLP_BINARY, ['-f', 'bestaudio/best', '-o', '-', url], {
-    stdio: ['ignore', 'pipe', 'pipe'],
-  });
+  const child = spawn(
+    YTDLP_BINARY,
+    ['-f', 'bestaudio/best', '-o', '-', mediaUrl],
+    {
+      stdio: ['ignore', 'pipe', 'pipe'],
+    },
+  );
   response.writeHead(200, {
     'content-type': 'audio/mpeg',
     'access-control-allow-origin': '*',
@@ -78,6 +96,17 @@ const safeFilePath = (path: string): string => {
     throw new Error('Invalid file path');
   }
   return resolved;
+};
+
+const parseAllowedProxyUrl = (target: string): URL => {
+  const proxyUrl = new URL(target);
+  if (!['http:', 'https:'].includes(proxyUrl.protocol)) {
+    throw new Error('Unsupported proxy URL protocol');
+  }
+  if (!PROXY_ALLOWED_HOSTS.has(proxyUrl.hostname.toLowerCase())) {
+    throw new Error('Proxy URL host is not allowed');
+  }
+  return proxyUrl;
 };
 
 const handleInvoke = async (
@@ -181,7 +210,8 @@ const handleRequest = async (
       json(response, 400, { error: 'Missing url parameter' });
       return;
     }
-    const proxyResponse = await fetch(target);
+    const proxyUrl = parseAllowedProxyUrl(target);
+    const proxyResponse = await fetch(proxyUrl);
     response.writeHead(proxyResponse.status, {
       'content-type':
         proxyResponse.headers.get('content-type') ?? 'application/octet-stream',
