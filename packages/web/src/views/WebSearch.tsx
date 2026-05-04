@@ -12,7 +12,6 @@ import {
   EmptyState,
   Loader,
   Tabs,
-  TabsItem,
 } from '@nuclearplayer/ui';
 
 import { useQueueActions } from '../hooks/useQueueActions';
@@ -120,7 +119,7 @@ export const WebSearchContent: FC<WebSearchContentProps> = ({
         </CardGrid>
       ),
     },
-  ].filter(Boolean);
+  ].filter((item): item is NonNullable<typeof item> => Boolean(item));
 
-  return <Tabs items={tabsItems as TabsItem[]} className="flex-1" />;
+  return <Tabs items={tabsItems} className="flex-1" />;
 };

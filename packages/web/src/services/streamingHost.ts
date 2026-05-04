@@ -19,9 +19,10 @@ const isStreamExpired = (candidate: StreamCandidate): boolean => {
     return true;
   }
 
-  const expiryMs = useSettingsStore
-    .getState()
-    .getValue('playback.streamExpiryMs') as number;
+  const expiryMs =
+    (useSettingsStore
+      .getState()
+      .getValue('playback.streamExpiryMs') as number) ?? 3600000;
   const resolvedAt = new Date(candidate.lastResolvedAtIso).getTime();
 
   return Date.now() - resolvedAt > expiryMs;
@@ -102,7 +103,8 @@ export const createStreamingHost = (): StreamingHost => ({
     const retries =
       (useSettingsStore
         .getState()
-        .getValue('playback.streamResolutionRetries') as number) ?? 3;
+        .getValue('playback.streamResolutionRetries') as number | undefined) ??
+      3;
 
     try {
       const stream = await withRetry(
