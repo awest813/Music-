@@ -15,6 +15,7 @@ import './platform';
 import { routeTree } from './routeTree.gen';
 import { registerBuiltInCoreSettings } from './services/coreSettings';
 import { initializeFavoritesStore } from './stores/favoritesStore';
+import { initializePlaylistStore } from './stores/playlistStore';
 import { initializeQueueStore } from './stores/queueStore';
 import { initializeSettingsStore } from './stores/settingsStore';
 
@@ -31,7 +32,11 @@ const queryClient = new QueryClient();
 const bootstrap = async (): Promise<void> => {
   await initializeSettingsStore();
   registerBuiltInCoreSettings();
-  await Promise.all([initializeQueueStore(), initializeFavoritesStore()]);
+  await Promise.all([
+    initializeQueueStore(),
+    initializeFavoritesStore(),
+    initializePlaylistStore(),
+  ]);
 };
 
 const rootElement = document.getElementById('root');
