@@ -2,7 +2,9 @@ import { spawn } from 'node:child_process';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { createServer, IncomingMessage, ServerResponse } from 'node:http';
 import { dirname, resolve } from 'node:path';
+import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
+import type { ReadableStream } from 'node:stream/web';
 
 const DEFAULT_PORT = 3473;
 const PORT = Number(process.env.PORT ?? DEFAULT_PORT);
@@ -186,7 +188,12 @@ const handleRequest = async (
       'access-control-allow-origin': '*',
     });
     if (proxyResponse.body) {
-      await pipeline(proxyResponse.body, response);
+      await pipeline(
+        Readable.fromWeb(
+          proxyResponse.body as unknown as ReadableStream<Uint8Array>,
+        ),
+        response,
+      );
     }
     return;
   }

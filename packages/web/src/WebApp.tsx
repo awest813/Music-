@@ -1,7 +1,7 @@
 import { FC, useMemo } from 'react';
 
 import { usePlatform } from '@nuclearplayer/platform';
-import { Badge, Button, Card, Toaster } from '@nuclearplayer/ui';
+import { Badge, Box, Button, Toaster } from '@nuclearplayer/ui';
 
 const FEATURES = [
   'Shared Nuclear UI, themes, i18n, model, hifi, and plugin SDK packages',
@@ -28,7 +28,7 @@ export const WebApp: FC = () => {
     <main className="bg-background text-foreground min-h-screen p-6 md:p-10">
       <section className="mx-auto flex max-w-5xl flex-col gap-6">
         <div className="flex flex-col gap-4">
-          <Badge variant="solid" color="green">
+          <Badge variant="pill" color="green">
             Web preview
           </Badge>
           <h1 className="font-heading text-5xl font-black tracking-tight">
@@ -43,16 +43,16 @@ export const WebApp: FC = () => {
 
         <div className="grid gap-4 md:grid-cols-2">
           {FEATURES.map((feature) => (
-            <Card
+            <Box
               key={feature}
               className="border-border shadow-brutal border-2 p-5"
             >
               {feature}
-            </Card>
+            </Box>
           ))}
         </div>
 
-        <Card className="border-border shadow-brutal flex flex-col gap-4 border-2 p-5">
+        <Box className="border-border shadow-brutal flex flex-col gap-4 border-2 p-5">
           <h2 className="font-heading text-2xl font-bold">Runtime status</h2>
           <p>
             Backend URL:{' '}
@@ -68,7 +68,7 @@ export const WebApp: FC = () => {
               Open Nuclear on GitHub
             </Button>
           </div>
-        </Card>
+        </Box>
       </section>
       <Toaster />
     </main>

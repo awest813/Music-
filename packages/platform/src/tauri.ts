@@ -1,32 +1,15 @@
-import { invoke as tauriInvoke } from '@tauri-apps/api/core';
-import { appDataDir, join as tauriJoin } from '@tauri-apps/api/path';
-import { message, open, save } from '@tauri-apps/plugin-dialog';
-import {
-  BaseDirectory,
-  exists,
-  mkdir,
-  readDir,
-  readTextFile,
-  remove,
-  watchImmediate,
-  writeTextFile,
-} from '@tauri-apps/plugin-fs';
-import * as tauriLog from '@tauri-apps/plugin-log';
-import { openUrl, revealItemInDir } from '@tauri-apps/plugin-opener';
-import { exit, relaunch } from '@tauri-apps/plugin-process';
 import { LazyStore } from '@tauri-apps/plugin-store';
-import { check } from '@tauri-apps/plugin-updater';
 
 import type {
   Platform,
   PlatformDirectory,
   PlatformFileOptions,
+  PlatformStorageStore,
   PlatformWatchOptions,
 } from './types';
 
-const toBaseDirectory = (
-  directory: PlatformDirectory | undefined,
-): BaseDirectory | undefined => {
+const toBaseDirectory = async (directory: PlatformDirectory | undefined) => {
+  const { BaseDirectory } = await import('@tauri-apps/plugin-fs');
   switch (directory) {
     case 'appData':
       return BaseDirectory.AppData;
@@ -39,13 +22,38 @@ const toBaseDirectory = (
   }
 };
 
-const toFileOptions = (options?: PlatformFileOptions) => ({
-  baseDir: toBaseDirectory(options?.baseDir),
+const toFileOptions = async (options?: PlatformFileOptions) => ({
+  baseDir: await toBaseDirectory(options?.baseDir),
 });
 
-const toWatchOptions = (options?: PlatformWatchOptions) => ({
-  baseDir: toBaseDirectory(options?.baseDir),
+const toWatchOptions = async (options?: PlatformWatchOptions) => ({
+  baseDir: await toBaseDirectory(options?.baseDir),
 });
+
+const createTauriStorageStore = (path: string): PlatformStorageStore => {
+  const store = new LazyStore(path);
+  return {
+    get: (key) => store.get(key),
+    set: (key, value) => store.set(key, value),
+    delete: (key) => store.delete(key).then(() => undefined),
+    clear: () => store.clear(),
+    entries: () => store.entries(),
+    save: () => store.save(),
+    close: () => store.close(),
+  };
+};
+
+const logWithTauri = async (
+  level: 'trace' | 'debug' | 'info' | 'warn' | 'error',
+  message: string,
+): Promise<void> => {
+  try {
+    const tauriLog = await import('@tauri-apps/plugin-log');
+    await tauriLog[level](message);
+  } catch {
+    console[level](message);
+  }
+};
 
 export const tauriPlatform: Platform = {
   capabilities: {
@@ -55,32 +63,50 @@ export const tauriPlatform: Platform = {
     nativeUpdater: true,
   },
   storage: {
-    createStore: (path) => new LazyStore(path),
+    createStore: createTauriStorageStore,
   },
   fs: {
-    readTextFile: (path, options) => readTextFile(path, toFileOptions(options)),
-    writeTextFile: (path, contents, options) =>
-      writeTextFile(path, contents, toFileOptions(options)),
+    readTextFile: async (path, options) => {
+      const { readTextFile } = await import('@tauri-apps/plugin-fs');
+      return readTextFile(path, await toFileOptions(options));
+    },
+    writeTextFile: async (path, contents, options) => {
+      const { writeTextFile } = await import('@tauri-apps/plugin-fs');
+      await writeTextFile(path, contents, await toFileOptions(options));
+    },
     readDir: async (path, options) => {
-      const entries = await readDir(path, toFileOptions(options));
+      const { readDir } = await import('@tauri-apps/plugin-fs');
+      const entries = await readDir(path, await toFileOptions(options));
       return entries.map((entry) => ({
         name: entry.name,
         isDirectory: entry.isDirectory,
       }));
     },
-    remove: (path, options) => remove(path, toFileOptions(options)),
-    mkdir: (path, options) =>
-      mkdir(path, { ...toFileOptions(options), recursive: true }),
-    exists: (path, options) => exists(path, toFileOptions(options)),
-    watchImmediate: async (path, handler, options) =>
-      watchImmediate(
+    remove: async (path, options) => {
+      const { remove } = await import('@tauri-apps/plugin-fs');
+      await remove(path, await toFileOptions(options));
+    },
+    mkdir: async (path, options) => {
+      const { mkdir } = await import('@tauri-apps/plugin-fs');
+      await mkdir(path, { ...(await toFileOptions(options)), recursive: true });
+    },
+    exists: async (path, options) => {
+      const { exists } = await import('@tauri-apps/plugin-fs');
+      return exists(path, await toFileOptions(options));
+    },
+    watchImmediate: async (path, handler, options) => {
+      const { watchImmediate } = await import('@tauri-apps/plugin-fs');
+      return watchImmediate(
         path,
         (event) => {
           void handler({ paths: event.paths });
         },
-        toWatchOptions(options),
-      ),
+        await toWatchOptions(options),
+      );
+    },
     pickTextFile: async () => {
+      const { readTextFile } = await import('@tauri-apps/plugin-fs');
+      const { open } = await import('@tauri-apps/plugin-dialog');
       const picked = await open({ multiple: false });
       if (typeof picked !== 'string') {
         return null;
@@ -91,6 +117,8 @@ export const tauriPlatform: Platform = {
       };
     },
     saveTextFile: async (defaultPath, contents) => {
+      const { writeTextFile } = await import('@tauri-apps/plugin-fs');
+      const { save } = await import('@tauri-apps/plugin-dialog');
       const path = await save({ defaultPath });
       if (!path) {
         return null;
@@ -98,31 +126,64 @@ export const tauriPlatform: Platform = {
       await writeTextFile(path, contents);
       return path;
     },
-    join: (...paths) => tauriJoin(...paths),
-    appDataDir,
+    join: async (...paths) => {
+      const { join } = await import('@tauri-apps/api/path');
+      return join(...paths);
+    },
+    appDataDir: async () => {
+      const { appDataDir } = await import('@tauri-apps/api/path');
+      return appDataDir();
+    },
   },
   dialog: {
-    open,
-    save,
-    message,
+    open: async (options) => {
+      const { open } = await import('@tauri-apps/plugin-dialog');
+      return open(options as Parameters<typeof open>[0]);
+    },
+    save: async (options) => {
+      const { save } = await import('@tauri-apps/plugin-dialog');
+      return save(options as Parameters<typeof save>[0]);
+    },
+    message: async (text) => {
+      const { message } = await import('@tauri-apps/plugin-dialog');
+      await message(text);
+    },
   },
   shell: {
-    openUrl,
-    revealItemInDir,
+    openUrl: async (url) => {
+      const { openUrl } = await import('@tauri-apps/plugin-opener');
+      await openUrl(url);
+    },
+    revealItemInDir: async (path) => {
+      const { revealItemInDir } = await import('@tauri-apps/plugin-opener');
+      await revealItemInDir(path);
+    },
   },
   logger: {
-    trace: tauriLog.trace,
-    debug: tauriLog.debug,
-    info: tauriLog.info,
-    warn: tauriLog.warn,
-    error: tauriLog.error,
+    trace: (message) => logWithTauri('trace', message),
+    debug: (message) => logWithTauri('debug', message),
+    info: (message) => logWithTauri('info', message),
+    warn: (message) => logWithTauri('warn', message),
+    error: (message) => logWithTauri('error', message),
   },
   process: {
-    exit,
-    relaunch,
+    exit: async (code) => {
+      const { exit } = await import('@tauri-apps/plugin-process');
+      await exit(code);
+    },
+    relaunch: async () => {
+      const { relaunch } = await import('@tauri-apps/plugin-process');
+      await relaunch();
+    },
   },
   updater: {
-    check,
+    check: async () => {
+      const { check } = await import('@tauri-apps/plugin-updater');
+      return check();
+    },
   },
-  invoke: (command, args) => tauriInvoke(command, args),
+  invoke: async (command, args) => {
+    const { invoke } = await import('@tauri-apps/api/core');
+    return invoke(command, args);
+  },
 };

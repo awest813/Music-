@@ -14,8 +14,8 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "type-check": "tsc --noEmit",
-    "test": "vitest --run",
-    "test:coverage": "vitest --run --coverage",
+    "test": "vitest --run --passWithNoTests",
+    "test:coverage": "vitest --run --coverage --passWithNoTests",
     "clean": "rm -rf dist .turbo"
   },
   "devDependencies": {
