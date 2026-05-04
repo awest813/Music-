@@ -1,11 +1,12 @@
-import { LazyStore } from '@tauri-apps/plugin-store';
 import { create } from 'zustand';
 
 import type { ProviderKind } from '@nuclearplayer/plugin-sdk';
 
+import { platform } from '../services/platform';
+
 const STORE_FILE = 'active-providers.json';
 const STORE_KEY = 'active';
-const store = new LazyStore(STORE_FILE);
+const store = platform.storage.createStore(STORE_FILE);
 
 type ProvidersStoreState = {
   active: Record<string, string>;

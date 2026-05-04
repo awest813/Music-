@@ -1,23 +1,22 @@
-import { BaseDirectory, remove } from '@tauri-apps/plugin-fs';
-import { LazyStore } from '@tauri-apps/plugin-store';
-
 import type { Playlist } from '@nuclearplayer/model';
 import { playlistSchema } from '@nuclearplayer/model';
+import type { PlatformStorageStore } from '@nuclearplayer/platform';
 
 import { Logger } from '../logger';
+import { platform } from '../platform';
 import { loadValidated } from '../validatedStore';
 
 const PLAYLISTS_DIR = 'playlists';
 const MAX_CACHED_STORES = 20;
 
 export class PlaylistFileStore {
-  #stores = new Map<string, LazyStore>();
+  #stores = new Map<string, PlatformStorageStore>();
   #accessOrder: string[] = [];
 
-  #get(id: string): LazyStore {
+  #get(id: string): PlatformStorageStore {
     let store = this.#stores.get(id);
     if (!store) {
-      store = new LazyStore(`${PLAYLISTS_DIR}/${id}.json`);
+      store = platform.storage.createStore(`${PLAYLISTS_DIR}/${id}.json`);
       this.#stores.set(id, store);
     }
     this.#touch(id);
@@ -67,8 +66,8 @@ export class PlaylistFileStore {
     this.#accessOrder = this.#accessOrder.filter((i) => i !== id);
 
     try {
-      await remove(`${PLAYLISTS_DIR}/${id}.json`, {
-        baseDir: BaseDirectory.AppData,
+      await platform.fs.remove(`${PLAYLISTS_DIR}/${id}.json`, {
+        baseDir: 'appData',
       });
     } catch {
       Logger.playlists.warn(

@@ -1,0 +1,22 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    ports:
+      - "8080:80"
+    depends_on:
+      - server
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+    environment:
+      PORT: 3473
+      NUCLEAR_WEB_FILE_ROOT: /data
+    ports:
+      - "3473:3473"
+    volumes:
+      - nuclear-web-data:/data
+volumes:
+  nuclear-web-data:

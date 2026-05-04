@@ -1,12 +1,12 @@
-import { LazyStore } from '@tauri-apps/plugin-store';
 import { create } from 'zustand';
 
 import { Logger } from '../services/logger';
+import { platform } from '../services/platform';
 import { COMMANDS } from '../shortcuts/commands';
 import { resolveErrorMessage } from '../utils/logging';
 
 const SHORTCUTS_FILE = 'shortcuts.json';
-const store = new LazyStore(SHORTCUTS_FILE);
+const store = platform.storage.createStore(SHORTCUTS_FILE);
 
 type ShortcutsStore = {
   overrides: Record<string, string>;

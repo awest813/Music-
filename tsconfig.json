@@ -41,6 +41,9 @@
       ],
       "@nuclearplayer/i18n": [
         "./packages/i18n/src"
+      ],
+      "@nuclearplayer/platform": [
+        "./packages/platform/src"
       ]
     }
   },

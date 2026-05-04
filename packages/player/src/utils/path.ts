@@ -1,20 +1,16 @@
-import { BaseDirectory, exists, mkdir } from '@tauri-apps/plugin-fs';
-
 import { Logger } from '../services/logger';
+import { platform } from '../services/platform';
 import { reportError, resolveErrorMessage } from './logging';
 
 export const ensureDir = async (
   dir: string,
-  baseDir: BaseDirectory = BaseDirectory.AppData,
+  baseDir: 'appData' = 'appData',
 ) => {
   try {
-    const present = await exists(dir, { baseDir });
+    const present = await platform.fs.exists(dir, { baseDir });
     if (!present) {
       try {
-        await mkdir(dir, {
-          recursive: true,
-          baseDir,
-        });
+        await platform.fs.mkdir(dir, { baseDir });
       } catch (error) {
         await reportError('fs', {
           userMessage: `Failed to create directory ${dir}`,

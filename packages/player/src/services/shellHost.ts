@@ -1,9 +1,9 @@
-import { openUrl } from '@tauri-apps/plugin-opener';
-
 import type { ShellHost } from '@nuclearplayer/plugin-sdk';
+
+import { platform } from './platform';
 
 export const shellHost: ShellHost = {
   async openExternal(url: string) {
-    await openUrl(url);
+    await platform.shell.openUrl(url);
   },
 };

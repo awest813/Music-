@@ -1,4 +1,3 @@
-import { LazyStore } from '@tauri-apps/plugin-store';
 import { create } from 'zustand';
 
 import type {
@@ -9,10 +8,12 @@ import type {
 } from '@nuclearplayer/model';
 import type { FavoriteEntry, FavoritesData } from '@nuclearplayer/plugin-sdk';
 
+import { platform } from '../services/platform';
+
 export type { FavoriteEntry, FavoritesData };
 
 const FAVORITES_FILE = 'favorites.json';
-const store = new LazyStore(FAVORITES_FILE);
+const store = platform.storage.createStore(FAVORITES_FILE);
 
 type RefWithSource = { source: ProviderRef };
 

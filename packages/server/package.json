@@ -1,0 +1,29 @@
+{
+  "name": "@nuclearplayer/server",
+  "version": "0.0.10",
+  "description": "Stateless backend for Nuclear web streaming and platform commands",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "nuclear-web-server": "./dist/index.js"
+  },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "type-check": "tsc --noEmit",
+    "test": "vitest --run",
+    "test:coverage": "vitest --run --coverage",
+    "clean": "rm -rf dist .turbo"
+  },
+  "devDependencies": {
+    "@nuclearplayer/eslint-config": "workspace:*",
+    "@types/node": "^25.4.0",
+    "@vitest/coverage-v8": "^4.0.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.2",
+    "vitest": "^4.0.0"
+  }
+}

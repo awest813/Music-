@@ -59,4 +59,5 @@
 * [Contributing](development/contributing.md)
 * [Host pattern](development/host-pattern.md)
 * [Logging](development/logging.md)
+* [Web app](development/web-app.md)
 * [MCP Architecture](development/mcp-architecture.md)

@@ -1,4 +1,4 @@
-import * as tauriLog from '@tauri-apps/plugin-log';
+import { platform } from './platform';
 
 const MAX_LOG_LENGTH = 4000;
 const PREVIEW_MAX_ENTRIES = 3;
@@ -36,7 +36,7 @@ export type LogScope = (typeof LOG_SCOPES)[number];
 const createScopedLogger = (scope: string): ScopedLogger => {
   const logWithScope = (level: LogLevel, message: string): Promise<void> => {
     const formattedMessage = `[${scope}] ${message}`;
-    return tauriLog[level](formattedMessage);
+    return platform.logger[level](formattedMessage);
   };
 
   return {

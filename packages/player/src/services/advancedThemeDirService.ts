@@ -1,11 +1,3 @@
-import { join } from '@tauri-apps/api/path';
-import {
-  BaseDirectory,
-  readDir,
-  readTextFile,
-  watchImmediate,
-} from '@tauri-apps/plugin-fs';
-
 import { parseAdvancedTheme } from '@nuclearplayer/themes';
 
 import type { AdvancedThemeFile } from '../stores/themeStore';
@@ -13,6 +5,7 @@ import { useThemeStore } from '../stores/themeStore';
 import { reportError } from '../utils/logging';
 import { ensureDir } from '../utils/path';
 import { loadAndApplyAdvancedThemeFromFile } from './advancedThemeService';
+import { platform } from './platform';
 
 let unwatch: (() => void) | null = null;
 
@@ -26,7 +19,7 @@ export const listAdvancedThemes = async (): Promise<AdvancedThemeFile[]> => {
   const dir = await ensureThemesDir();
   let entries: Array<{ name?: string; isDirectory?: boolean }>;
   try {
-    entries = await readDir(dir, { baseDir: BaseDirectory.AppData });
+    entries = await platform.fs.readDir(dir, { baseDir: 'appData' });
   } catch (error) {
     await reportError('themes', {
       userMessage: 'Failed to read themes directory',
@@ -43,9 +36,9 @@ export const listAdvancedThemes = async (): Promise<AdvancedThemeFile[]> => {
     if (!name.toLowerCase().endsWith('.json')) {
       continue;
     }
-    const path = await join(dir, name);
+    const path = await platform.fs.join(dir, name);
     try {
-      const text = await readTextFile(path, { baseDir: BaseDirectory.AppData });
+      const text = await platform.fs.readTextFile(path, { baseDir: 'appData' });
       const json = JSON.parse(text);
       const parsed = parseAdvancedTheme(json);
       themes.push({ path, name: parsed.name });
@@ -72,7 +65,7 @@ export const startAdvancedThemeWatcher = async (): Promise<void> => {
     return;
   }
   try {
-    unwatch = await watchImmediate(
+    unwatch = await platform.fs.watchImmediate(
       dir,
       async (event) => {
         await refreshAdvancedThemeList();
@@ -96,7 +89,7 @@ export const startAdvancedThemeWatcher = async (): Promise<void> => {
           });
         }
       },
-      { baseDir: BaseDirectory.AppData },
+      { baseDir: 'appData' },
     );
   } catch (error) {
     await reportError('themes', {

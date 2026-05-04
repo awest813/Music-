@@ -1,14 +1,13 @@
-import { LazyStore } from '@tauri-apps/plugin-store';
-
 import type { PlaylistIndexEntry } from '@nuclearplayer/model';
 import { playlistIndexSchema } from '@nuclearplayer/model';
 
+import { platform } from '../platform';
 import { loadValidated } from '../validatedStore';
 
 const PLAYLISTS_DIR = 'playlists';
 
 export class PlaylistIndexStore {
-  #store = new LazyStore(`${PLAYLISTS_DIR}/index.json`);
+  #store = platform.storage.createStore(`${PLAYLISTS_DIR}/index.json`);
 
   async load(): Promise<PlaylistIndexEntry[]> {
     return (
