@@ -5,9 +5,12 @@ import { dirname, resolve } from 'node:path';
 import { pipeline } from 'node:stream/promises';
 
 const DEFAULT_PORT = 3473;
+const MIN_PORT = 1;
+const MAX_PORT = 65_535;
+
 const parsePort = (value: string | undefined): number => {
   const parsed = Number(value ?? DEFAULT_PORT);
-  if (!Number.isInteger(parsed) || parsed < 1 || parsed > 65_535) {
+  if (!Number.isInteger(parsed) || parsed < MIN_PORT || parsed > MAX_PORT) {
     return DEFAULT_PORT;
   }
   return parsed;
@@ -87,7 +90,9 @@ const stream = async (
 const safeFilePath = (path: string): string => {
   const resolved = resolve(FILE_ROOT, path);
   if (!resolved.startsWith(FILE_ROOT)) {
-    throw new Error('Invalid file path');
+    throw new Error(
+      'Path traversal detected: file path must stay within the configured data directory',
+    );
   }
   return resolved;
 };

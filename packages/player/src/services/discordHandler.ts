@@ -138,6 +138,9 @@ const startHeartbeat = () =>
 
 export const initDiscordHandler = () => {
   if (!platform.capabilities.discord) {
+    Logger.discord.debug(
+      'Discord integration is not supported on this platform',
+    );
     return;
   }
 

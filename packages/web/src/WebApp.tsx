@@ -15,6 +15,8 @@ const FEATURES = [
 
 export const WebApp: FC = () => {
   const platform = usePlatform();
+  const serverUrl =
+    import.meta.env.VITE_NUCLEAR_SERVER_URL ?? DEFAULT_NUCLEAR_SERVER_URL;
   const unsupported = useMemo(
     () =>
       [
@@ -57,11 +59,7 @@ export const WebApp: FC = () => {
 
         <Box className="border-border shadow-brutal flex flex-col gap-4 border-2 p-5">
           <h2 className="font-heading text-2xl font-bold">Runtime status</h2>
-          <p>
-            Backend URL:{' '}
-            {import.meta.env.VITE_NUCLEAR_SERVER_URL ??
-              DEFAULT_NUCLEAR_SERVER_URL}
-          </p>
+          <p>Backend URL: {serverUrl}</p>
           <p>Desktop-only capabilities disabled: {unsupported.join(', ')}</p>
           <div>
             <Button
