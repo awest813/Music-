@@ -1,4 +1,3 @@
-import { LazyStore } from '@tauri-apps/plugin-store';
 import { produce } from 'immer';
 import { v4 as uuidv4 } from 'uuid';
 import { create } from 'zustand';
@@ -6,12 +5,13 @@ import { create } from 'zustand';
 import type { Queue, QueueItem, Track } from '@nuclearplayer/model';
 
 import { Logger } from '../services/logger';
+import { platform } from '../services/platform';
 import { resolveErrorMessage } from '../utils/logging';
 import { getSetting } from './settingsStore';
 import { useSoundStore } from './soundStore';
 
 const QUEUE_FILE = 'queue.json';
-const store = new LazyStore(QUEUE_FILE);
+const store = platform.storage.createStore(QUEUE_FILE);
 
 type QueueStore = Queue & {
   isLoading: boolean;

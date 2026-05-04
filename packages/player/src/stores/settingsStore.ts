@@ -1,4 +1,3 @@
-import { LazyStore } from '@tauri-apps/plugin-store';
 import { create } from 'zustand';
 
 import type {
@@ -7,8 +6,10 @@ import type {
   SettingValue,
 } from '@nuclearplayer/plugin-sdk';
 
+import { platform } from '../services/platform';
+
 const SETTINGS_FILE = 'settings.json';
-const store = new LazyStore(SETTINGS_FILE);
+const store = platform.storage.createStore(SETTINGS_FILE);
 
 type Registry = Record<string, SettingDefinition>;
 type Values = Record<string, SettingValue>;

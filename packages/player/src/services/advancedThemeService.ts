@@ -1,4 +1,3 @@
-import { BaseDirectory, readTextFile } from '@tauri-apps/plugin-fs';
 import { toast } from 'sonner';
 
 import {
@@ -8,9 +7,10 @@ import {
 } from '@nuclearplayer/themes';
 
 import { useThemeStore, type AdvancedTheme } from '../stores/themeStore';
+import { platform } from './platform';
 
 export const loadAndApplyThemeFile = async (path: string): Promise<void> => {
-  const contents = await readTextFile(path, { baseDir: BaseDirectory.AppData });
+  const contents = await platform.fs.readTextFile(path, { baseDir: 'appData' });
   const json = JSON.parse(contents);
   const theme = parseAdvancedTheme(json);
   setThemeId('');

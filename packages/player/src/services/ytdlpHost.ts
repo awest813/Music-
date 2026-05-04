@@ -1,5 +1,3 @@
-import { invoke } from '@tauri-apps/api/core';
-
 import type {
   YtdlpHost,
   YtdlpPlaylistInfo,
@@ -7,22 +5,24 @@ import type {
   YtdlpStreamInfo,
 } from '@nuclearplayer/plugin-sdk';
 
+import { platform } from './platform';
+
 export const ytdlpHost: YtdlpHost = {
   search: async (
     query: string,
     maxResults?: number,
   ): Promise<YtdlpSearchResult[]> => {
-    return invoke<YtdlpSearchResult[]>('ytdlp_search', {
+    return platform.invoke<YtdlpSearchResult[]>('ytdlp_search', {
       query,
       maxResults: maxResults ?? 10,
     });
   },
 
   getStream: async (videoId: string): Promise<YtdlpStreamInfo> => {
-    return invoke<YtdlpStreamInfo>('ytdlp_get_stream', { videoId });
+    return platform.invoke<YtdlpStreamInfo>('ytdlp_get_stream', { videoId });
   },
 
   getPlaylist: async (url: string): Promise<YtdlpPlaylistInfo> => {
-    return invoke<YtdlpPlaylistInfo>('ytdlp_get_playlist', { url });
+    return platform.invoke<YtdlpPlaylistInfo>('ytdlp_get_playlist', { url });
   },
 };

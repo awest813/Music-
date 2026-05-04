@@ -1,0 +1,50 @@
+{
+  "name": "@nuclearplayer/web",
+  "version": "0.0.10",
+  "description": "Browser web app for Nuclear",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "type-check": "tsc --noEmit",
+    "test": "vitest --run --passWithNoTests",
+    "test:coverage": "vitest --run --coverage --passWithNoTests",
+    "clean": "rm -rf dist build .turbo node_modules/.vite"
+  },
+  "dependencies": {
+    "@nuclearplayer/hifi": "workspace:*",
+    "@nuclearplayer/i18n": "workspace:*",
+    "@nuclearplayer/model": "workspace:*",
+    "@nuclearplayer/platform": "workspace:*",
+    "@nuclearplayer/plugin-sdk": "workspace:*",
+    "@nuclearplayer/tailwind-config": "workspace:*",
+    "@nuclearplayer/themes": "workspace:*",
+    "@nuclearplayer/ui": "workspace:*",
+    "@tanstack/react-query": "^5.85.5",
+    "@tanstack/react-router": "^1.131.2",
+    "vite-plugin-pwa": "^1.2.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "sonner": "^2.0.7",
+    "react-i18next": "^16.0.0"
+  },
+  "devDependencies": {
+    "@nuclearplayer/eslint-config": "workspace:*",
+    "@tailwindcss/vite": "^4.1.11",
+    "@testing-library/jest-dom": "^6.6.4",
+    "@testing-library/react": "^16.3.0",
+    "@types/react": "^18.3.23",
+    "@types/react-dom": "^18.3.7",
+    "@vitejs/plugin-react": "^5.0.1",
+    "@vitest/coverage-v8": "^4.0.0",
+    "jsdom": "^26.1.0",
+    "tailwindcss": "^4.1.11",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.3",
+    "vitest": "^4.0.0"
+  }
+}

@@ -1,10 +1,9 @@
-import { LazyStore } from '@tauri-apps/plugin-store';
-
 import { Logger } from '../logger';
+import { platform } from '../platform';
 
 const REGISTRY_FILE = 'plugins.json';
 const PREFIX = 'plugins.';
-const store = new LazyStore(REGISTRY_FILE);
+const store = platform.storage.createStore(REGISTRY_FILE);
 
 export type PluginInstallationMethod = 'dev' | 'store';
 

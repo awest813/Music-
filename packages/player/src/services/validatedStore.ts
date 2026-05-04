@@ -1,11 +1,12 @@
-import { LazyStore } from '@tauri-apps/plugin-store';
 import type { z } from 'zod';
+
+import type { PlatformStorageStore } from '@nuclearplayer/platform';
 
 import { reportError } from '../utils/logging';
 import type { LogScope } from './logger';
 
 export const loadValidated = async <S extends z.ZodType>(
-  store: LazyStore,
+  store: PlatformStorageStore,
   key: string,
   schema: S,
   domain: LogScope,

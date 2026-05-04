@@ -1,5 +1,3 @@
-import { invoke } from '@tauri-apps/api/core';
-
 import type {
   HttpHost,
   HttpRequestInit,
@@ -7,6 +5,7 @@ import type {
 } from '@nuclearplayer/plugin-sdk';
 
 import { Logger } from './logger';
+import { platform } from './platform';
 
 export const httpHost: HttpHost = {
   fetch: async (
@@ -16,7 +15,7 @@ export const httpHost: HttpHost = {
     const method = init?.method ?? 'GET';
     Logger.http.debug(`${method} ${url}`);
 
-    const response = await invoke<HttpResponseData>('http_fetch', {
+    const response = await platform.invoke<HttpResponseData>('http_fetch', {
       request: {
         url,
         method,

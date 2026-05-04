@@ -1,6 +1,18 @@
 [
   {
     "date": "2026-05-04T00:00",
+    "description": "Add the initial web app target, platform abstraction, and web backend scaffolding",
+    "type": "feature",
+    "contributors": ["nukeop"],
+    "tags": [
+      {
+        "label": "Web",
+        "color": "blue"
+      }
+    ]
+  },
+  {
+    "date": "2026-05-04T00:00",
     "description": "Installed plugins are automatically updated to the latest version on startup",
     "type": "feature",
     "contributors": ["nukeop"],

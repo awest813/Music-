@@ -15,7 +15,9 @@
     "storybook": "pnpm --filter @nuclearplayer/storybook dev",
     "prepare": "husky",
     "clean": "turbo clean && rm -rf node_modules/.cache",
-    "type-check": "turbo type-check"
+    "type-check": "turbo type-check",
+    "dev:web": "turbo dev --filter=@nuclearplayer/web --filter=@nuclearplayer/server",
+    "build:web": "turbo build --filter=@nuclearplayer/web --filter=@nuclearplayer/server"
   },
   "devDependencies": {
     "@ianvs/prettier-plugin-sort-imports": "^4.5.1",
