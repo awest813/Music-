@@ -42,7 +42,7 @@ pnpm dev:web
 
 The frontend runs on port `5174` and expects the backend at `http://localhost:3473` by default. Override the backend URL with `VITE_NUCLEAR_SERVER_URL` when needed.
 
-The backend exposes a plugin marketplace proxy at `/proxy/plugin-marketplace` when `NUCLEAR_PLUGIN_MARKETPLACE_PROXY_URL` is configured.
+The backend exposes a plugin marketplace proxy at `/proxy/plugin-marketplace` when `NUCLEAR_PLUGIN_MARKETPLACE_PROXY_URL` is configured with an HTTPS URL.
 
 ## Deployment
 

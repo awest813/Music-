@@ -18,7 +18,14 @@ export default defineConfig({
         background_color: '#111111',
         display: 'standalone',
         start_url: '/',
-        icons: [],
+        icons: [
+          {
+            src: '/icon.svg',
+            sizes: 'any',
+            type: 'image/svg+xml',
+            purpose: 'any maskable',
+          },
+        ],
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,json,woff2}'],

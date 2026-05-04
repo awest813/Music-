@@ -1,7 +1,7 @@
 import { spawn } from 'node:child_process';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { createServer, IncomingMessage, ServerResponse } from 'node:http';
-import { dirname, resolve } from 'node:path';
+import { dirname, isAbsolute, relative, resolve } from 'node:path';
 import { pipeline } from 'node:stream/promises';
 
 const DEFAULT_PORT = 3473;
@@ -21,8 +21,20 @@ const YTDLP_BINARY = process.env.YTDLP_BINARY ?? 'yt-dlp';
 const FILE_ROOT = resolve(
   process.env.NUCLEAR_WEB_FILE_ROOT ?? '.nuclear-web-data',
 );
-const PLUGIN_MARKETPLACE_PROXY_URL =
-  process.env.NUCLEAR_PLUGIN_MARKETPLACE_PROXY_URL;
+const parseHttpsUrl = (value: string | undefined): URL | null => {
+  if (!value) {
+    return null;
+  }
+  const parsed = new URL(value);
+  if (parsed.protocol !== 'https:') {
+    throw new Error('Configured proxy URLs must use HTTPS');
+  }
+  return parsed;
+};
+
+const PLUGIN_MARKETPLACE_PROXY_URL = parseHttpsUrl(
+  process.env.NUCLEAR_PLUGIN_MARKETPLACE_PROXY_URL,
+);
 
 const json = (
   response: ServerResponse,
@@ -89,12 +101,21 @@ const stream = async (
 
 const safeFilePath = (path: string): string => {
   const resolved = resolve(FILE_ROOT, path);
-  if (!resolved.startsWith(FILE_ROOT)) {
+  const relativePath = relative(FILE_ROOT, resolved);
+  if (relativePath.startsWith('..') || isAbsolute(relativePath)) {
     throw new Error(
       'Path traversal detected: file path must stay within the configured data directory',
     );
   }
   return resolved;
+};
+
+const requireMediaUrl = (value: string): string => {
+  const parsed = new URL(value);
+  if (!['http:', 'https:'].includes(parsed.protocol)) {
+    throw new Error('Media URL must use HTTP or HTTPS');
+  }
+  return parsed.toString();
 };
 
 const handleInvoke = async (
@@ -109,7 +130,7 @@ const handleInvoke = async (
       json(response, 200, true);
       return;
     case 'ytdlp_info': {
-      const url = String(body.url ?? '');
+      const url = requireMediaUrl(String(body.url ?? ''));
       const result = await runYtdlp(['--dump-json', url]);
       json(response, 200, JSON.parse(result));
       return;
@@ -161,7 +182,7 @@ const handleRequest = async (
       json(response, 400, { error: 'Missing url parameter' });
       return;
     }
-    await stream(request, response, mediaUrl);
+    await stream(request, response, requireMediaUrl(mediaUrl));
     return;
   }
 
@@ -187,7 +208,7 @@ const handleRequest = async (
       json(response, 400, { error: 'Missing url parameter' });
       return;
     }
-    const result = await runYtdlp(['--dump-json', mediaUrl]);
+    const result = await runYtdlp(['--dump-json', requireMediaUrl(mediaUrl)]);
     json(response, 200, JSON.parse(result));
     return;
   }
