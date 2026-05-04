@@ -1,30 +1,26 @@
 ---
-description: Nuclear - Music streaming app for your desktop
+description: OpenConcert - Music streaming app for your desktop
 ---
 
-# Nuclear Documentation
+# OpenConcert Documentation
 
-Nuclear is a free, open-source music player without ads or tracking. Search for any song or artist, build playlists, and start listening. This documentation is for both users and developers.
+OpenConcert is a free, open-source music player without ads or tracking. Search for any song or artist, build playlists, and start listening. This documentation is for both users and developers.
 
 ## Quick links
 
-| Site     | Website                                                                    |
-| -------- | -------------------------------------------------------------------------- |
-| Website  | [https://nuclearplayer.com/](https://nuclearplayer.com/)                   |
-| Github   | [https://github.com/nukeop/nuclear](https://github.com/nukeop/nuclear)     |
-| Discord  | [https://discord.gg/JqPjKxE](https://discord.gg/JqPjKxE)                   |
-| Mastodon | [https://fosstodon.org/@nuclearplayer](https://fosstodon.org/@nuclearplayer) |
-| Gitbook  | [https://docs.nuclearplayer.com](https://docs.nuclearplayer.com)   |
+| Site   | URL                                                              |
+| ------ | ---------------------------------------------------------------- |
+| Github | [https://github.com/awest813/Music-](https://github.com/awest813/Music-) |
 
 ## For users
 
-New to Nuclear? Start here:
+New to OpenConcert? Start here:
 
-- [Getting started](user-manual/getting-started.md) - install Nuclear and play your first song
-- [How Nuclear works](core-concepts/how-nuclear-works.md) - understand the plugin model and how playback works
+- [Getting started](user-manual/getting-started.md) - install OpenConcert and play your first song
+- [How OpenConcert works](core-concepts/how-nuclear-works.md) - understand the plugin model and how playback works
 - [Plugins and providers](core-concepts/plugins-and-providers.md) - what plugins do and how to manage your sources
 - [Installation](user-manual/installation.md) - platform-specific download and install instructions
-- [Themes](themes/themes.md) - customize Nuclear's appearance with built-in, custom, or community themes
+- [Themes](themes/themes.md) - customize OpenConcert's appearance with built-in, custom, or community themes
 
 ## What is in this repo?
 
