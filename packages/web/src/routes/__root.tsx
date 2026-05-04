@@ -1,9 +1,11 @@
 import { createRootRoute } from '@tanstack/react-router';
 import {
+  CableIcon,
   DiscIcon,
   GaugeIcon,
   ListMusicIcon,
   MusicIcon,
+  SettingsIcon,
   UserIcon,
 } from 'lucide-react';
 
@@ -26,6 +28,7 @@ import { useLayoutStore } from '../stores/layoutStore';
 
 const RootComponent = () => {
   const { t } = useTranslation('navigation');
+  const { t: tPrefs } = useTranslation('preferences');
   const {
     leftSidebar,
     rightSidebar,
@@ -74,7 +77,17 @@ const RootComponent = () => {
                   icon={<ListMusicIcon />}
                   label={t('playlists')}
                 />
+                <SidebarNavigationItem
+                  to="/sources"
+                  icon={<CableIcon />}
+                  label={t('sources')}
+                />
               </div>
+              <SidebarNavigationItem
+                to="/settings"
+                icon={<SettingsIcon />}
+                label={tPrefs('title')}
+              />
             </SidebarNavigation>
           </PlayerWorkspace.LeftSidebar>
 
