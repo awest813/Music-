@@ -1,6 +1,6 @@
 # Table of contents
 
-* [Nuclear Documentation](README.md)
+* [OpenConcert Documentation](README.md)
 
 ## User Manual
 
