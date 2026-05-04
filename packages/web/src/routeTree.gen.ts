@@ -9,6 +9,8 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as SourcesRouteImport } from './routes/sources'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
@@ -19,6 +21,17 @@ import { Route as FavoritesArtistsRouteImport } from './routes/favorites/artists
 import { Route as FavoritesAlbumsRouteImport } from './routes/favorites/albums'
 import { Route as ArtistProviderIdArtistIdRouteImport } from './routes/artist/$providerId/$artistId'
 import { Route as AlbumProviderIdAlbumIdRouteImport } from './routes/album/$providerId/$albumId'
+
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SourcesRoute = SourcesRouteImport.update({
+  id: '/sources',
+  path: '/sources',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
@@ -76,6 +89,8 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/search': typeof SearchRoute
+  '/settings': typeof SettingsRoute
+  '/sources': typeof SourcesRoute
   '/favorites/albums': typeof FavoritesAlbumsRoute
   '/favorites/artists': typeof FavoritesArtistsRoute
   '/favorites/tracks': typeof FavoritesTracksRoute
@@ -88,6 +103,8 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/search': typeof SearchRoute
+  '/settings': typeof SettingsRoute
+  '/sources': typeof SourcesRoute
   '/favorites/albums': typeof FavoritesAlbumsRoute
   '/favorites/artists': typeof FavoritesArtistsRoute
   '/favorites/tracks': typeof FavoritesTracksRoute
@@ -101,6 +118,8 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/search': typeof SearchRoute
+  '/settings': typeof SettingsRoute
+  '/sources': typeof SourcesRoute
   '/favorites/albums': typeof FavoritesAlbumsRoute
   '/favorites/artists': typeof FavoritesArtistsRoute
   '/favorites/tracks': typeof FavoritesTracksRoute
@@ -115,6 +134,8 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/search'
+    | '/settings'
+    | '/sources'
     | '/favorites/albums'
     | '/favorites/artists'
     | '/favorites/tracks'
@@ -127,6 +148,8 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/search'
+    | '/settings'
+    | '/sources'
     | '/favorites/albums'
     | '/favorites/artists'
     | '/favorites/tracks'
@@ -139,6 +162,8 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/search'
+    | '/settings'
+    | '/sources'
     | '/favorites/albums'
     | '/favorites/artists'
     | '/favorites/tracks'
@@ -152,6 +177,8 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRoute
   SearchRoute: typeof SearchRoute
+  SettingsRoute: typeof SettingsRoute
+  SourcesRoute: typeof SourcesRoute
   FavoritesAlbumsRoute: typeof FavoritesAlbumsRoute
   FavoritesArtistsRoute: typeof FavoritesArtistsRoute
   FavoritesTracksRoute: typeof FavoritesTracksRoute
@@ -168,6 +195,20 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sources': {
+      id: '/sources'
+      path: '/sources'
+      fullPath: '/sources'
+      preLoaderRoute: typeof SourcesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -240,6 +281,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
   SearchRoute: SearchRoute,
+  SettingsRoute: SettingsRoute,
+  SourcesRoute: SourcesRoute,
   FavoritesAlbumsRoute: FavoritesAlbumsRoute,
   FavoritesArtistsRoute: FavoritesArtistsRoute,
   FavoritesTracksRoute: FavoritesTracksRoute,
