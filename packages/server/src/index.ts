@@ -2,9 +2,7 @@ import { spawn } from 'node:child_process';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { createServer, IncomingMessage, ServerResponse } from 'node:http';
 import { dirname, resolve } from 'node:path';
-import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
-import type { ReadableStream } from 'node:stream/web';
 
 const DEFAULT_PORT = 3473;
 const parsePort = (value: string | undefined): number => {
@@ -20,12 +18,8 @@ const YTDLP_BINARY = process.env.YTDLP_BINARY ?? 'yt-dlp';
 const FILE_ROOT = resolve(
   process.env.NUCLEAR_WEB_FILE_ROOT ?? '.nuclear-web-data',
 );
-const PROXY_ALLOWED_HOSTS = new Set(
-  (process.env.NUCLEAR_WEB_PROXY_ALLOWED_HOSTS ?? '')
-    .split(',')
-    .map((host) => host.trim().toLowerCase())
-    .filter(Boolean),
-);
+const PLUGIN_MARKETPLACE_PROXY_URL =
+  process.env.NUCLEAR_PLUGIN_MARKETPLACE_PROXY_URL;
 
 const json = (
   response: ServerResponse,
@@ -96,17 +90,6 @@ const safeFilePath = (path: string): string => {
     throw new Error('Invalid file path');
   }
   return resolved;
-};
-
-const parseAllowedProxyUrl = (target: string): URL => {
-  const proxyUrl = new URL(target);
-  if (!['http:', 'https:'].includes(proxyUrl.protocol)) {
-    throw new Error('Unsupported proxy URL protocol');
-  }
-  if (!PROXY_ALLOWED_HOSTS.has(proxyUrl.hostname.toLowerCase())) {
-    throw new Error('Proxy URL host is not allowed');
-  }
-  return proxyUrl;
 };
 
 const handleInvoke = async (
@@ -204,27 +187,23 @@ const handleRequest = async (
     return;
   }
 
-  if (request.method === 'GET' && requestUrl.pathname === '/proxy') {
-    const target = requestUrl.searchParams.get('url');
-    if (!target) {
-      json(response, 400, { error: 'Missing url parameter' });
+  if (
+    request.method === 'GET' &&
+    requestUrl.pathname === '/proxy/plugin-marketplace'
+  ) {
+    if (!PLUGIN_MARKETPLACE_PROXY_URL) {
+      json(response, 503, {
+        error: 'Plugin marketplace proxy is not configured',
+      });
       return;
     }
-    const proxyUrl = parseAllowedProxyUrl(target);
-    const proxyResponse = await fetch(proxyUrl);
+    const proxyResponse = await fetch(PLUGIN_MARKETPLACE_PROXY_URL);
     response.writeHead(proxyResponse.status, {
       'content-type':
         proxyResponse.headers.get('content-type') ?? 'application/octet-stream',
       'access-control-allow-origin': '*',
     });
-    if (proxyResponse.body) {
-      await pipeline(
-        Readable.fromWeb(
-          proxyResponse.body as unknown as ReadableStream<Uint8Array>,
-        ),
-        response,
-      );
-    }
+    response.end(await proxyResponse.text());
     return;
   }
 
