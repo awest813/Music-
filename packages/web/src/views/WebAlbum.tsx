@@ -82,7 +82,7 @@ const AlbumHeader: FC<AlbumSectionProps> = ({ providerId, albumId }) => {
           <h1 className="font-heading text-5xl font-extrabold tracking-tight">
             {album.title}
           </h1>
-          <div className="text-text-secondary text-lg">
+          <div className="text-foreground-secondary text-lg">
             by {album.artists.map((artist) => artist.name).join(', ')}
           </div>
         </div>

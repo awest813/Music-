@@ -10,8 +10,8 @@ export const Route = createFileRoute('/album/$providerId/$albumId')({
       albumId: z.string().parse(params.albumId),
     }),
     stringify: ({ providerId, albumId }) => ({
-      providerId: `${providerId}`,
-      albumId: `${albumId}`,
+      providerId,
+      albumId,
     }),
   },
   component: WebAlbum,

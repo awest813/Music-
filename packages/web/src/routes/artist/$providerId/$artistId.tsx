@@ -10,8 +10,8 @@ export const Route = createFileRoute('/artist/$providerId/$artistId')({
       artistId: z.string().parse(params.artistId),
     }),
     stringify: ({ providerId, artistId }) => ({
-      providerId: `${providerId}`,
-      artistId: `${artistId}`,
+      providerId,
+      artistId,
     }),
   },
   component: WebArtist,

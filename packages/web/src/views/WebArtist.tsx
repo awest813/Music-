@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import isEmpty from 'lodash-es/isEmpty';
 import {
   ListMusic,
   LucideIcon,
@@ -103,7 +102,7 @@ const ArtistBioHeader: FC<ArtistSectionProps> = ({ providerId, artistId }) => {
               )}
             </div>
           </div>
-          {!isEmpty(artist.tags) && (
+          {artist.tags && artist.tags.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {artist.tags?.map((tag) => (
                 <span
@@ -384,35 +383,37 @@ const ArtistSimilarArtists: FC<ArtistSectionProps> = ({
     );
   }
 
+  if (!artists || artists.length === 0) {
+    return null;
+  }
+
   return (
-    !isEmpty(artists) && (
-      <div className="flex flex-col">
-        <h2 className="mb-2 text-lg font-semibold">{t('similar')}</h2>
-        <ul className="divide-border bg-primary border-border divide-y-(length:--border-width) border border-(length:--border-width)">
-          {artists!.slice(0, 5).map((artist) => {
-            const thumb = pickArtwork(artist.artwork, 'thumbnail', 64);
-            const avatar = thumb ?? pickArtwork(artist.artwork, 'avatar', 64);
-            return (
-              <li
-                key={artist.source.id}
-                className="flex cursor-default items-center gap-3 select-none"
-              >
-                {avatar ? (
-                  <img
-                    src={avatar.url}
-                    alt={artist.name}
-                    className="h-10 w-10 object-cover"
-                  />
-                ) : (
-                  <div className="h-10 w-10" />
-                )}
-                <span className="truncate">{artist.name}</span>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-    )
+    <div className="flex flex-col">
+      <h2 className="mb-2 text-lg font-semibold">{t('similar')}</h2>
+      <ul className="divide-border bg-primary border-border divide-y-(length:--border-width) border border-(length:--border-width)">
+        {artists.slice(0, 5).map((artist) => {
+          const thumb = pickArtwork(artist.artwork, 'thumbnail', 64);
+          const avatar = thumb ?? pickArtwork(artist.artwork, 'avatar', 64);
+          return (
+            <li
+              key={artist.source.id}
+              className="flex cursor-default items-center gap-3 select-none"
+            >
+              {avatar ? (
+                <img
+                  src={avatar.url}
+                  alt={artist.name}
+                  className="h-10 w-10 object-cover"
+                />
+              ) : (
+                <div className="h-10 w-10" />
+              )}
+              <span className="truncate">{artist.name}</span>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 };
 
