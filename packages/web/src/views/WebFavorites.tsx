@@ -1,3 +1,4 @@
+import { useNavigate } from '@tanstack/react-router';
 import { Disc3, Music, User } from 'lucide-react';
 import { useMemo, type FC } from 'react';
 
@@ -6,11 +7,14 @@ import { pickArtwork } from '@nuclearplayer/model';
 import { Card, CardGrid, EmptyState, ViewShell } from '@nuclearplayer/ui';
 
 import { ConnectedTrackTable } from '../components/ConnectedTrackTable';
+import { useActiveProvider } from '../hooks/useActiveProvider';
 import { useFavoritesStore } from '../stores/favoritesStore';
 import { sortByAddedAtDesc } from '../utils/sort';
 
 export const FavoriteAlbums: FC = () => {
   const { t } = useTranslation('favorites');
+  const navigate = useNavigate();
+  const provider = useActiveProvider('metadata');
   const albums = useFavoritesStore((state) => state.albums);
   const sortedAlbums = useMemo(() => sortByAddedAtDesc(albums), [albums]);
 
@@ -30,6 +34,14 @@ export const FavoriteAlbums: FC = () => {
               key={`${entry.ref.source.provider}-${entry.ref.source.id}`}
               title={entry.ref.title}
               src={pickArtwork(entry.ref.artwork, 'cover', 300)?.url}
+              onClick={
+                provider
+                  ? () =>
+                      navigate({
+                        to: `/album/${provider.id}/${entry.ref.source.id}`,
+                      })
+                  : undefined
+              }
             />
           ))}
         </CardGrid>
@@ -40,6 +52,8 @@ export const FavoriteAlbums: FC = () => {
 
 export const FavoriteArtists: FC = () => {
   const { t } = useTranslation('favorites');
+  const navigate = useNavigate();
+  const provider = useActiveProvider('metadata');
   const artists = useFavoritesStore((state) => state.artists);
   const sortedArtists = useMemo(() => sortByAddedAtDesc(artists), [artists]);
 
@@ -59,6 +73,14 @@ export const FavoriteArtists: FC = () => {
               key={`${entry.ref.source.provider}-${entry.ref.source.id}`}
               title={entry.ref.name}
               src={pickArtwork(entry.ref.artwork, 'cover', 300)?.url}
+              onClick={
+                provider
+                  ? () =>
+                      navigate({
+                        to: `/artist/${provider.id}/${entry.ref.source.id}`,
+                      })
+                  : undefined
+              }
             />
           ))}
         </CardGrid>
