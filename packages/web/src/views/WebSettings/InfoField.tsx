@@ -8,7 +8,11 @@ type InfoFieldProps = {
   value: string | undefined;
 };
 
-export const InfoField: FC<InfoFieldProps> = ({ label, description, value }) => (
+export const InfoField: FC<InfoFieldProps> = ({
+  label,
+  description,
+  value,
+}) => (
   <div className="flex flex-col gap-2">
     <span className="text-foreground text-sm font-semibold">{label}</span>
     <div className="flex items-center gap-2">

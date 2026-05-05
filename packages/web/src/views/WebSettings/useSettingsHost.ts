@@ -10,12 +10,14 @@ import {
   createPluginSettingsHost,
 } from '../../services/settingsHost';
 
-export const useSettingsHost = (definition: SettingDefinition): SettingsHost => {
+export const useSettingsHost = (
+  definition: SettingDefinition,
+): SettingsHost => {
   const source = definition.source;
   return useMemo(() => {
     if (source?.type === 'plugin') {
       return createPluginSettingsHost(source.pluginId, source.pluginName);
     }
     return coreSettingsHost;
-  }, [source?.type, source?.pluginId]);
+  }, [source?.type, source?.type === 'plugin' ? source.pluginId : undefined]);
 };
