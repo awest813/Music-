@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useNavigate, useSearch } from '@tanstack/react-router';
+import { useCallback, useMemo } from 'react';
 
 import { useTranslation } from '@nuclearplayer/i18n';
 import { ScrollableArea, Tabs, ViewShell } from '@nuclearplayer/ui';
@@ -9,6 +10,9 @@ import { WebThemes } from '../WebThemes/WebThemes';
 import { WebWhatsNew } from '../WebWhatsNew/WebWhatsNew';
 import { SettingsSection } from './SettingsSection';
 import { useSettingsGroups } from './useSettingsGroups';
+
+const TAB_IDS = ['general', 'themes', 'plugins', 'logs', 'whats-new'] as const;
+type TabId = (typeof TAB_IDS)[number];
 
 const GeneralSettings = () => {
   const { t } = useTranslation('preferences');
@@ -33,7 +37,25 @@ const GeneralSettings = () => {
 
 export const WebSettings = () => {
   const { t } = useTranslation('preferences');
-  const [selectedTab, setSelectedTab] = useState(0);
+  const navigate = useNavigate();
+  const { tab } = useSearch({ from: '/settings' });
+
+  const selectedTab = useMemo(() => {
+    const idx = TAB_IDS.indexOf(tab as TabId);
+    return idx >= 0 ? idx : 0;
+  }, [tab]);
+
+  const handleTabChange = useCallback(
+    (index: number) => {
+      const tabId = TAB_IDS[index];
+      navigate({
+        to: '/settings',
+        search: tabId === 'general' ? {} : { tab: tabId },
+        replace: true,
+      });
+    },
+    [navigate],
+  );
 
   const items = [
     {
@@ -68,7 +90,7 @@ export const WebSettings = () => {
       <Tabs
         items={items}
         selectedIndex={selectedTab}
-        onChange={setSelectedTab}
+        onChange={handleTabChange}
         className="flex flex-1 flex-col overflow-hidden"
         panelsClassName="flex-1 overflow-hidden"
       />

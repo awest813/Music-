@@ -61,6 +61,7 @@ export const installPluginToManagedDir = async (
       userMessage: 'Failed to create managed plugin directory',
       error,
     });
+    throw error;
   }
 
   const appData = await appDataDir();

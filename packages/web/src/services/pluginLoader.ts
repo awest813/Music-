@@ -11,12 +11,25 @@ import { safeParsePluginManifest } from './pluginManifest';
 type PluginCode = string;
 
 export class PluginLoader {
-  private url?: string;
+  private url: string;
   private manifest?: PluginManifest;
   private warnings: string[] = [];
 
   constructor(url: string) {
     this.url = url;
+  }
+
+  private async fetchWithTimeout(
+    url: string,
+    timeoutMs = 15000,
+  ): Promise<Response> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      return await fetch(url, { signal: controller.signal });
+    } finally {
+      clearTimeout(timeoutId);
+    }
   }
 
   private async fetchPluginManifest(): Promise<PluginManifest> {
@@ -27,7 +40,7 @@ export class PluginLoader {
     Logger.plugins.debug(
       `Fetching plugin manifest from ${this.url}/package.json`,
     );
-    const response = await fetch(`${this.url}/package.json`);
+    const response = await this.fetchWithTimeout(`${this.url}/package.json`);
     if (!response.ok) {
       throw new Error(`Failed to fetch package.json: ${response.status}`);
     }
@@ -124,8 +137,9 @@ export class PluginLoader {
       );
       throw error;
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const plugin = (module.exports as unknown as any).default || module.exports;
+
+    const plugin =
+      (module.exports as Record<string, unknown>).default ?? module.exports;
     if (!plugin || typeof plugin !== 'object') {
       throw new Error('Plugin must export a default object.');
     }
@@ -151,7 +165,7 @@ export class PluginLoader {
     return {
       metadata,
       instance,
-      path: this.url!,
+      path: this.url,
     };
   }
 

@@ -1,12 +1,14 @@
 import { FC } from 'react';
 
 import type {
+  CustomSettingDefinition,
   EnumSettingDefinition,
   NumberWidget,
   SettingDefinition,
   SettingValue,
 } from '@nuclearplayer/plugin-sdk';
 
+import { CustomWidgetField } from './CustomWidgetField';
 import { InfoField } from './InfoField';
 import { NumberInputField } from './NumberInputField';
 import { SelectField } from './SelectField';
@@ -35,7 +37,13 @@ export const SettingField: FC<SettingFieldProps> = ({
   setValue,
 }) => {
   if (definition.kind === 'custom') {
-    return null;
+    return (
+      <CustomWidgetField
+        definition={definition as CustomSettingDefinition}
+        value={value}
+        setValue={setValue}
+      />
+    );
   }
 
   const {

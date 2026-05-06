@@ -4,7 +4,9 @@ import { FC } from 'react';
 import { TopBar, TopBarLogo, TopBarNavigation } from '@nuclearplayer/ui';
 
 import { useCanGoForward } from '../hooks/useCanGoForward';
+import { ConnectedThemeController } from './ConnectedThemeController';
 import { SearchBox } from './SearchBox';
+import { SocialLinks } from './SocialLinks';
 
 export const WebTopBar: FC = () => {
   const router = useRouter();
@@ -23,6 +25,10 @@ export const WebTopBar: FC = () => {
         />
       </div>
       <SearchBox />
+      <div className="flex items-center gap-2">
+        <SocialLinks />
+        <ConnectedThemeController />
+      </div>
     </TopBar>
   );
 };

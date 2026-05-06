@@ -10,17 +10,26 @@ export const CreatePlaylistDialog: FC = () => {
   const { isCreateDialogOpen, closeCreateDialog, createPlaylist } =
     useCreatePlaylistContext();
   const [name, setName] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     const trimmed = name.trim();
-    if (!trimmed) {
+    if (!trimmed || isCreating) {
       return;
     }
-    createPlaylist(trimmed);
-    setName('');
+    setIsCreating(true);
+    try {
+      await createPlaylist(trimmed);
+      setName('');
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   const handleClose = () => {
+    if (isCreating) {
+      return;
+    }
     closeCreateDialog();
     setName('');
   };
@@ -46,7 +55,9 @@ export const CreatePlaylistDialog: FC = () => {
         </div>
         <Dialog.Actions>
           <Dialog.Close>{t('common:actions.cancel')}</Dialog.Close>
-          <Button type="submit">{t('create')}</Button>
+          <Button type="submit" disabled={isCreating}>
+            {t('create')}
+          </Button>
         </Dialog.Actions>
       </form>
     </Dialog.Root>

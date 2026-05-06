@@ -174,10 +174,9 @@ export const usePlaylistStore = create<PlaylistStore>((set, get) => ({
     };
 
     const index = await playlistFileService.savePlaylist(updated);
-    set({ index });
-
     set((state) => ({
       playlists: new Map(state.playlists).set(playlistId, updated),
+      index,
     }));
   },
 

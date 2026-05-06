@@ -15,7 +15,9 @@ import './platform';
 import { routeTree } from './routeTree.gen';
 import { registerBuiltInCoreSettings } from './services/coreSettings';
 import { registerDemoProviders } from './services/demoProviders';
+import { initDiscoveryService } from './services/discoveryService';
 import { providersHost } from './services/providersHost';
+import { setupStreamingPairingSync } from './services/streamingPairingSync';
 import { initializeFavoritesStore } from './stores/favoritesStore';
 import { initializePlaylistStore } from './stores/playlistStore';
 import { initializeQueueStore } from './stores/queueStore';
@@ -36,6 +38,8 @@ const bootstrap = async (): Promise<void> => {
   registerBuiltInCoreSettings();
   await registerDemoProviders();
   providersHost.resolveActiveOnBootstrap();
+  setupStreamingPairingSync(providersHost);
+  initDiscoveryService();
   await Promise.all([
     initializeQueueStore(),
     initializeFavoritesStore(),

@@ -1,6 +1,12 @@
 import { useNavigate } from '@tanstack/react-router';
 import isEmpty from 'lodash-es/isEmpty';
-import { CassetteTape, ListMusic, Plus } from 'lucide-react';
+import {
+  CassetteTape,
+  DownloadIcon,
+  LinkIcon,
+  ListMusic,
+  Plus,
+} from 'lucide-react';
 import {
   createContext,
   useCallback,
@@ -10,6 +16,7 @@ import {
   type FC,
   type PropsWithChildren,
 } from 'react';
+import { toast } from 'sonner';
 
 import { useTranslation } from '@nuclearplayer/i18n';
 import type { PlaylistIndexEntry } from '@nuclearplayer/model';
@@ -128,17 +135,28 @@ const CreatePlaylistDialog: FC = () => {
   const { isCreateDialogOpen, closeCreateDialog, createPlaylist } =
     usePlaylistsContext();
   const [name, setName] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     const trimmed = name.trim();
-    if (!trimmed) {
+    if (!trimmed || isCreating) {
       return;
     }
-    void createPlaylist(trimmed);
-    setName('');
+    setIsCreating(true);
+    try {
+      await createPlaylist(trimmed);
+      setName('');
+    } catch {
+      // Error handled by context
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   const handleClose = () => {
+    if (isCreating) {
+      return;
+    }
     closeCreateDialog();
     setName('');
   };
@@ -164,7 +182,9 @@ const CreatePlaylistDialog: FC = () => {
         </div>
         <Dialog.Actions>
           <Dialog.Close>{t('common:actions.cancel')}</Dialog.Close>
-          <Button type="submit">{t('create')}</Button>
+          <Button type="submit" disabled={isCreating}>
+            {t('create')}
+          </Button>
         </Dialog.Actions>
       </form>
     </Dialog.Root>
@@ -199,6 +219,66 @@ const PlaylistsContent: FC = () => {
   const navigate = useNavigate();
   const index = usePlaylistStore((state) => state.index);
   const { openCreateDialog } = usePlaylistsContext();
+  const importPlaylist = usePlaylistStore((state) => state.importPlaylist);
+  const [isUrlDialogOpen, setIsUrlDialogOpen] = useState(false);
+  const [urlValue, setUrlValue] = useState('');
+  const [isImporting, setIsImporting] = useState(false);
+
+  const handleJsonFileImport = useCallback(() => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = async (event) => {
+      const file = (event.target as HTMLInputElement).files?.[0];
+      if (!file) {
+        return;
+      }
+      setIsImporting(true);
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        let playlist;
+        if (data.version && data.playlist) {
+          playlist = data.playlist;
+        } else {
+          playlist = data;
+        }
+        if (!playlist.name || !playlist.items) {
+          toast.error(t('importInvalidFormat'));
+          return;
+        }
+        const newId = await importPlaylist(playlist);
+        toast.success(t('importSuccess'));
+        navigate({
+          to: '/playlists/$playlistId',
+          params: { playlistId: newId },
+        });
+      } catch (error) {
+        toast.error(
+          t('importError', {
+            message: error instanceof Error ? error.message : String(error),
+          }),
+        );
+      } finally {
+        setIsImporting(false);
+      }
+    };
+    input.click();
+  }, [importPlaylist, navigate, t]);
+
+  const handleUrlImport = useCallback(async () => {
+    const trimmed = urlValue.trim();
+    if (!trimmed) {
+      return;
+    }
+    setIsUrlDialogOpen(false);
+    setUrlValue('');
+    navigate({
+      to: '/playlists/import/$providerId',
+      params: { providerId: 'local' },
+      search: { url: encodeURIComponent(trimmed) },
+    });
+  }, [urlValue, navigate]);
 
   return (
     <ViewShell data-testid="playlists-view" title={t('title')}>
@@ -206,6 +286,23 @@ const PlaylistsContent: FC = () => {
         <Button onClick={openCreateDialog} data-testid="create-playlist-button">
           <Plus size={16} />
           {t('create')}
+        </Button>
+        <Button
+          variant="secondary"
+          onClick={handleJsonFileImport}
+          disabled={isImporting}
+          data-testid="import-playlist-button"
+        >
+          <DownloadIcon size={16} />
+          {t('import')}
+        </Button>
+        <Button
+          variant="secondary"
+          onClick={() => setIsUrlDialogOpen(true)}
+          data-testid="import-url-button"
+        >
+          <LinkIcon size={16} />
+          {t('importFromUrl')}
         </Button>
       </div>
 
@@ -231,6 +328,35 @@ const PlaylistsContent: FC = () => {
       )}
 
       <CreatePlaylistDialog />
+
+      <Dialog.Root
+        isOpen={isUrlDialogOpen}
+        onClose={() => setIsUrlDialogOpen(false)}
+      >
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            void handleUrlImport();
+          }}
+        >
+          <Dialog.Title>{t('importFromUrl')}</Dialog.Title>
+          <div className="mt-4">
+            <Input
+              label={t('playlistUrl')}
+              placeholder="https://..."
+              value={urlValue}
+              onChange={(e) => setUrlValue(e.target.value)}
+              autoFocus
+            />
+          </div>
+          <Dialog.Actions>
+            <Dialog.Close>{t('cancel')}</Dialog.Close>
+            <Button type="submit" disabled={!urlValue.trim()}>
+              {t('import')}
+            </Button>
+          </Dialog.Actions>
+        </form>
+      </Dialog.Root>
     </ViewShell>
   );
 };
