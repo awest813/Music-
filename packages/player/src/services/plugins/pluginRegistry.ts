@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 import { Logger } from '../logger';
 import { platform } from '../platform';
 
@@ -7,26 +9,39 @@ const store = platform.storage.createStore(REGISTRY_FILE);
 
 export type PluginInstallationMethod = 'dev' | 'store';
 
-export type PluginRegistryEntry = {
-  id: string;
-  version: string;
-  path: string;
-  installationMethod: PluginInstallationMethod;
-  originalPath?: string;
-  enabled: boolean;
-  installedAt: string;
-  lastUpdatedAt: string;
-  warnings?: string[];
-};
+const PluginRegistryEntrySchema = z.object({
+  id: z.string().min(1),
+  version: z.string().min(1),
+  path: z.string().min(1),
+  installationMethod: z.enum(['dev', 'store']),
+  originalPath: z.string().optional(),
+  enabled: z.boolean(),
+  installedAt: z.string().min(1),
+  lastUpdatedAt: z.string().min(1),
+  warnings: z.array(z.string()).optional(),
+});
+
+export type PluginRegistryEntry = z.infer<typeof PluginRegistryEntrySchema>;
 
 const keyFor = (id: string): string => `${PREFIX}${id}`;
+
+const parseRegistryEntry = (data: unknown): PluginRegistryEntry | undefined => {
+  const result = PluginRegistryEntrySchema.safeParse(data);
+  if (!result.success) {
+    return undefined;
+  }
+  return result.data;
+};
 
 export const listRegistryEntries = async (): Promise<PluginRegistryEntry[]> => {
   const entries = await store.entries();
   const res: PluginRegistryEntry[] = [];
   Array.from(entries).forEach(([key, value]) => {
     if (String(key).startsWith(PREFIX)) {
-      res.push(value as PluginRegistryEntry);
+      const parsed = parseRegistryEntry(value);
+      if (parsed) {
+        res.push(parsed);
+      }
     }
   });
   return res;
@@ -35,11 +50,8 @@ export const listRegistryEntries = async (): Promise<PluginRegistryEntry[]> => {
 export const getRegistryEntry = async (
   id: string,
 ): Promise<PluginRegistryEntry | undefined> => {
-  const value = await store.get<PluginRegistryEntry | undefined>(keyFor(id));
-  if (value) {
-    return value;
-  }
-  return undefined;
+  const value = await store.get<unknown>(keyFor(id));
+  return parseRegistryEntry(value);
 };
 
 export const upsertRegistryEntry = async (
@@ -63,10 +75,7 @@ export const setRegistryEntryEnabled = async (
     );
     return;
   }
-  const next: PluginRegistryEntry = { ...current, enabled };
-  await store.set(keyFor(id), next);
-  await store.save();
-  Logger.plugins.debug(`Set registry entry ${id} enabled=${enabled}`);
+  await upsertRegistryEntry({ ...current, enabled });
 };
 
 export const setRegistryEntryWarnings = async (
@@ -77,12 +86,10 @@ export const setRegistryEntryWarnings = async (
   if (!current) {
     return;
   }
-  const next: PluginRegistryEntry = {
+  await upsertRegistryEntry({
     ...current,
     warnings: warnings.length ? warnings : undefined,
-  };
-  await store.set(keyFor(id), next);
-  await store.save();
+  });
 };
 
 export const removeRegistryEntry = async (id: string): Promise<void> => {

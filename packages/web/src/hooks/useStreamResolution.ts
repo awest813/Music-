@@ -26,6 +26,10 @@ const buildAudioSource = (candidate: StreamCandidate): AudioSource => {
     return { url: buildStreamUrl(stream.url), protocol: 'hls' };
   }
 
+  if (stream.protocol === 'http') {
+    return { url: stream.url, protocol: 'http' };
+  }
+
   return { url: buildStreamUrl(stream.url), protocol: stream.protocol };
 };
 
@@ -150,15 +154,13 @@ const resolveStream = async (
   }
 
   setSrc(buildAudioSource(resolvedCandidate));
-  if (autoPlay) {
-    play();
-  }
+  play();
 };
 
 export const useStreamResolution = (): void => {
   const { t } = useTranslation('streaming');
   const currentItemIdRef = useRef<string | null>(null);
-  const isFirstResolutionRef = useRef(true);
+  const hasResolvedOnceRef = useRef(false);
 
   useEffect(() => {
     const onCurrentItemChanged = (currentItem: QueueItem | undefined): void => {
@@ -166,10 +168,9 @@ export const useStreamResolution = (): void => {
         return;
       }
 
-      const autoPlay = !isFirstResolutionRef.current;
-      isFirstResolutionRef.current = false;
       currentItemIdRef.current = currentItem.id;
-      void resolveStream(currentItem, t, autoPlay);
+      hasResolvedOnceRef.current = true;
+      void resolveStream(currentItem, t, true);
     };
 
     const unsubscribe = useQueueStore.subscribe((state) => {

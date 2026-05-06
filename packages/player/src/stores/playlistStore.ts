@@ -154,12 +154,16 @@ export const usePlaylistStore = create<PlaylistStore>((set, get) => ({
   },
 
   reorderTracks: async (playlistId: string, from: number, to: number) => {
-    const playlist = get().playlists.get(playlistId);
+    const playlist = await get().loadPlaylist(playlistId);
     if (!playlist) {
       return;
     }
 
     const items = [...playlist.items];
+    if (from < 0 || from >= items.length || to < 0 || to >= items.length) {
+      return;
+    }
+
     const [moved] = items.splice(from, 1);
     items.splice(to, 0, moved);
 
@@ -169,12 +173,12 @@ export const usePlaylistStore = create<PlaylistStore>((set, get) => ({
       lastModifiedIso: new Date().toISOString(),
     };
 
+    const index = await playlistFileService.savePlaylist(updated);
+    set({ index });
+
     set((state) => ({
       playlists: new Map(state.playlists).set(playlistId, updated),
     }));
-
-    const index = await playlistFileService.savePlaylist(updated);
-    set({ index });
   },
 
   saveQueueAsPlaylist: async (name: string) => {

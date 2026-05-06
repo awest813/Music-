@@ -5,6 +5,8 @@ import {
   GaugeIcon,
   ListMusicIcon,
   MusicIcon,
+  PackageIcon,
+  PaletteIcon,
   SettingsIcon,
   UserIcon,
 } from 'lucide-react';
@@ -21,6 +23,7 @@ import {
 
 import { SoundProvider } from '../components/SoundProvider';
 import { StreamResolver } from '../components/StreamResolver';
+import { WebGlobalShortcuts } from '../components/WebGlobalShortcuts';
 import { WebPlayerBar } from '../components/WebPlayerBar';
 import { QueueHeaderActions, WebQueuePanel } from '../components/WebQueuePanel';
 import { WebTopBar } from '../components/WebTopBar';
@@ -41,6 +44,7 @@ const RootComponent = () => {
   return (
     <PlayerShell>
       <StreamResolver />
+      <WebGlobalShortcuts />
       <WebTopBar />
       <SoundProvider>
         <PlayerWorkspace>
@@ -81,6 +85,16 @@ const RootComponent = () => {
                   to="/sources"
                   icon={<CableIcon />}
                   label={t('sources')}
+                />
+                <SidebarNavigationItem
+                  to="/plugins"
+                  icon={<PackageIcon />}
+                  label={t('plugins')}
+                />
+                <SidebarNavigationItem
+                  to="/themes"
+                  icon={<PaletteIcon />}
+                  label={t('themes')}
                 />
               </div>
               <SidebarNavigationItem

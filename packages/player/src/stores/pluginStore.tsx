@@ -56,7 +56,13 @@ const requireInstance = (id: string) => {
   if (!plugin.instance) {
     throw new Error(`Plugin ${id} has no instance`);
   }
-  return plugin;
+  if (!plugin.api) {
+    throw new Error(`Plugin ${id} has no API`);
+  }
+  return plugin as PluginState & {
+    instance: NuclearPlugin;
+    api: NuclearPluginAPI;
+  };
 };
 
 type LoadedPluginData = {
@@ -105,10 +111,25 @@ export const usePluginStore = create<PluginStore>((set, get) => ({
       const metadata = await loader.loadMetadata();
       const id = metadata.id;
 
-      if (get().plugins[id]) {
+      const state = get();
+      if (state.plugins[id]) {
         Logger.plugins.debug(`Plugin ${id} already loaded, skipping`);
         return;
       }
+
+      set(
+        produce((draft: PluginStore) => {
+          draft.plugins[id] = {
+            metadata,
+            path,
+            enabled: false,
+            warning: false,
+            warnings: [],
+            installationMethod: 'dev',
+            isLoading: true,
+          };
+        }),
+      );
 
       const existing = await getRegistryEntry(id);
       const installationMethod: PluginInstallationMethod =
@@ -128,7 +149,14 @@ export const usePluginStore = create<PluginStore>((set, get) => ({
       } = await loadPluginData(path, id, metadata.version);
 
       const now = new Date().toISOString();
-      const enabled = existing ? existing.enabled : false;
+      const wasEnabled = existing ? existing.enabled : false;
+
+      const api = createPluginAPI(id, loadedMetadata.displayName);
+
+      if (instance.onLoad) {
+        Logger.plugins.debug(`Calling onLoad for ${id}`);
+        await instance.onLoad(api);
+      }
 
       await upsertRegistryEntry({
         id,
@@ -136,17 +164,15 @@ export const usePluginStore = create<PluginStore>((set, get) => ({
         path: managedPath,
         installationMethod,
         originalPath,
-        enabled,
+        enabled: false,
         installedAt: existing ? existing.installedAt : now,
         lastUpdatedAt: now,
         warnings,
       });
 
-      const api = createPluginAPI(id, loadedMetadata.displayName);
-
       set(
-        produce((state: PluginStore) => {
-          state.plugins[id] = {
+        produce((draft: PluginStore) => {
+          draft.plugins[id] = {
             metadata: loadedMetadata,
             path: managedPath,
             enabled: false,
@@ -156,6 +182,7 @@ export const usePluginStore = create<PluginStore>((set, get) => ({
             originalPath,
             instance,
             api,
+            isLoading: false,
           };
         }),
       );
@@ -164,7 +191,7 @@ export const usePluginStore = create<PluginStore>((set, get) => ({
         `Plugin ${id}@${loadedMetadata.version} loaded successfully`,
       );
 
-      if (enabled) {
+      if (wasEnabled) {
         Logger.plugins.debug(
           `Auto-enabling plugin ${id} (was previously enabled)`,
         );
@@ -186,9 +213,9 @@ export const usePluginStore = create<PluginStore>((set, get) => ({
       return;
     }
     try {
-      if (plugin.instance!.onEnable) {
+      if (plugin.instance.onEnable) {
         Logger.plugins.debug(`Calling onEnable for ${id}`);
-        await plugin.instance!.onEnable(plugin.api!);
+        await plugin.instance.onEnable(plugin.api);
       }
       set(
         produce((state: PluginStore) => {
@@ -198,6 +225,13 @@ export const usePluginStore = create<PluginStore>((set, get) => ({
       await setRegistryEntryEnabled(id, true);
       Logger.plugins.info(`Plugin ${id} enabled`);
     } catch (error) {
+      set(
+        produce((state: PluginStore) => {
+          if (state.plugins[id]) {
+            state.plugins[id].enabled = false;
+          }
+        }),
+      );
       Logger.plugins.error(
         `Failed to enable plugin ${id}: ${error instanceof Error ? error.message : String(error)}`,
       );
@@ -212,42 +246,54 @@ export const usePluginStore = create<PluginStore>((set, get) => ({
       Logger.plugins.debug(`Plugin ${id} is already disabled, skipping`);
       return;
     }
-    if (plugin.instance!.onDisable) {
-      Logger.plugins.debug(`Calling onDisable for ${id}`);
-      await plugin.instance!.onDisable(plugin.api!);
+    try {
+      if (plugin.instance.onDisable) {
+        Logger.plugins.debug(`Calling onDisable for ${id}`);
+        await plugin.instance.onDisable(plugin.api);
+      }
+      set(
+        produce((state: PluginStore) => {
+          state.plugins[id].enabled = false;
+        }),
+      );
+      await setRegistryEntryEnabled(id, false);
+      Logger.plugins.info(`Plugin ${id} disabled`);
+    } catch (error) {
+      set(
+        produce((state: PluginStore) => {
+          if (state.plugins[id]) {
+            state.plugins[id].enabled = true;
+          }
+        }),
+      );
+      Logger.plugins.error(
+        `Failed to disable plugin ${id}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      throw error;
     }
-    set(
-      produce((state: PluginStore) => {
-        state.plugins[id].enabled = false;
-      }),
-    );
-    await setRegistryEntryEnabled(id, false);
-    Logger.plugins.info(`Plugin ${id} disabled`);
   },
 
   unloadPlugin: async (id: string) => {
     Logger.plugins.debug(`Unloading plugin ${id}`);
-    const plugin = get().plugins[id];
+    const plugin = usePluginStore.getState().plugins[id];
     if (!plugin) {
       Logger.plugins.error(`Cannot unload plugin ${id}: not found`);
       throw new Error(`Plugin ${id} not found`);
     }
     let unloadError: unknown = null;
     try {
-      if (plugin.enabled) {
+      if (plugin.enabled && plugin.instance && plugin.api) {
         await get().disablePlugin(id);
       }
-      if (plugin.instance?.onUnload) {
+      if (plugin.instance?.onUnload && plugin.api) {
         Logger.plugins.debug(`Calling onUnload for ${id}`);
-        await plugin.instance.onUnload(plugin.api!);
+        await plugin.instance.onUnload(plugin.api);
       }
     } catch (error) {
       unloadError = error;
     }
 
-    // Plugin will be removed regardless of unload errors
     set((state) => {
-      // _removed is intentionally unused
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { [id]: _removed, ...rest } = state.plugins;
       return { plugins: rest };
@@ -263,15 +309,15 @@ export const usePluginStore = create<PluginStore>((set, get) => ({
   },
 
   cleanupPluginInstance: async (id: string) => {
-    const plugin = get().plugins[id];
+    const plugin = usePluginStore.getState().plugins[id];
     if (!plugin) {
       throw new Error(`Plugin ${id} not found`);
     }
-    if (plugin.enabled) {
+    if (plugin.enabled && plugin.instance && plugin.api) {
       await get().disablePlugin(id);
     }
-    if (plugin.instance?.onUnload) {
-      await plugin.instance.onUnload(plugin.api!);
+    if (plugin.instance?.onUnload && plugin.api) {
+      await plugin.instance.onUnload(plugin.api);
     }
   },
 
@@ -302,25 +348,27 @@ export const usePluginStore = create<PluginStore>((set, get) => ({
 
     try {
       set(
-        produce((state: PluginStore) => {
-          state.plugins[id].isLoading = true;
+        produce((draft: PluginStore) => {
+          draft.plugins[id].isLoading = true;
         }),
       );
 
       await get().cleanupPluginInstance(id);
-
-      const loader = new PluginLoader(originalPath);
-      const metadata = await loader.loadMetadata();
-      const newVersion = metadata.version;
 
       const {
         metadata: loadedMetadata,
         managedPath,
         instance,
         warnings,
-      } = await loadPluginData(originalPath, id, newVersion);
+      } = await loadPluginData(originalPath, id, currentVersion);
 
       const api = createPluginAPI(id, loadedMetadata.displayName);
+      const newVersion = loadedMetadata.version;
+
+      if (instance.onLoad) {
+        Logger.plugins.debug(`Calling onLoad for ${id} after reload`);
+        await instance.onLoad(api);
+      }
 
       const now = new Date().toISOString();
       const existingEntry = await getRegistryEntry(id);
@@ -335,21 +383,22 @@ export const usePluginStore = create<PluginStore>((set, get) => ({
         path: managedPath,
         installationMethod: 'dev',
         originalPath,
-        enabled: wasEnabled,
+        enabled: false,
         installedAt,
         lastUpdatedAt: now,
         warnings,
       });
 
       set(
-        produce((state: PluginStore) => {
-          state.plugins[id] = {
-            ...state.plugins[id],
+        produce((draft: PluginStore) => {
+          draft.plugins[id] = {
             metadata: loadedMetadata,
             path: managedPath,
             enabled: false,
             warning: warnings.length > 0,
             warnings,
+            installationMethod: 'dev',
+            originalPath,
             instance,
             api,
             isLoading: false,
@@ -367,9 +416,9 @@ export const usePluginStore = create<PluginStore>((set, get) => ({
       }
     } catch (error) {
       set(
-        produce((state: PluginStore) => {
-          if (state.plugins[id]) {
-            state.plugins[id].isLoading = false;
+        produce((draft: PluginStore) => {
+          if (draft.plugins[id]) {
+            draft.plugins[id].isLoading = false;
           }
         }),
       );

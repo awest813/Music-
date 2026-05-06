@@ -1,7 +1,13 @@
 import { useNavigate, useParams } from '@tanstack/react-router';
 import isEmpty from 'lodash-es/isEmpty';
-import { ArrowLeft, ListMusicIcon } from 'lucide-react';
+import {
+  ArrowLeft,
+  DownloadIcon,
+  ListMusicIcon,
+  TrashIcon,
+} from 'lucide-react';
 import { useCallback, useEffect, useMemo, type FC } from 'react';
+import { toast } from 'sonner';
 
 import { useTranslation } from '@nuclearplayer/i18n';
 import type { PlaylistItem, Track } from '@nuclearplayer/model';
@@ -13,6 +19,7 @@ import {
 } from '@nuclearplayer/ui';
 
 import { ConnectedTrackTable } from '../components/ConnectedTrackTable';
+import { usePlaylistExport } from '../hooks/usePlaylistExport';
 import { useQueueActions } from '../hooks/useQueueActions';
 import { usePlaylistStore } from '../stores/playlistStore';
 
@@ -39,7 +46,9 @@ export const WebPlaylistDetail: FC = () => {
   const { playlistId, playlist, items, tracks } = usePlaylistDetail();
   const removeTracks = usePlaylistStore((state) => state.removeTracks);
   const reorderTracks = usePlaylistStore((state) => state.reorderTracks);
+  const deletePlaylist = usePlaylistStore((state) => state.deletePlaylist);
   const { clearQueue, addToQueue } = useQueueActions();
+  const { exportPlaylist } = usePlaylistExport();
   const isEditable = Boolean(playlist && !playlist.isReadOnly);
 
   const handleRemove = useCallback(
@@ -58,6 +67,26 @@ export const WebPlaylistDetail: FC = () => {
     },
     [playlistId, reorderTracks],
   );
+
+  const handleDelete = useCallback(async () => {
+    try {
+      await deletePlaylist(playlistId);
+      toast.success(t('playlists:deleteSuccess'));
+      navigate({ to: '/playlists' });
+    } catch (error) {
+      toast.error(
+        t('playlists:deleteError', {
+          message: error instanceof Error ? error.message : String(error),
+        }),
+      );
+    }
+  }, [playlistId, deletePlaylist, navigate, t]);
+
+  const handleExport = useCallback(() => {
+    if (playlist) {
+      exportPlaylist(playlist);
+    }
+  }, [playlist, exportPlaylist]);
 
   const getItemId = useCallback(
     (_track: Track, index: number) => items[index]?.id ?? String(index),
@@ -92,6 +121,29 @@ export const WebPlaylistDetail: FC = () => {
             </Button>
             <Button variant="secondary" onClick={() => addToQueue(tracks)}>
               {t('playlists:addToQueue')}
+            </Button>
+          </>
+        )}
+        <div className="flex-1" />
+        {playlist && !playlist.isReadOnly && (
+          <>
+            <Button
+              variant="secondary"
+              size="icon"
+              onClick={handleExport}
+              title={t('playlists:exportPlaylist')}
+              data-testid="export-playlist-button"
+            >
+              <DownloadIcon size={16} />
+            </Button>
+            <Button
+              variant="secondary"
+              size="icon"
+              onClick={handleDelete}
+              title={t('playlists:deletePlaylist')}
+              data-testid="delete-playlist-button"
+            >
+              <TrashIcon size={16} />
             </Button>
           </>
         )}

@@ -11,12 +11,19 @@ import { reportError } from '../utils/logging';
 
 export const usePlaylistExport = (playlistId: string) => {
   const playlist = usePlaylistStore((state) => state.playlists.get(playlistId));
+  const loadPlaylist = usePlaylistStore((state) => state.loadPlaylist);
   const { t } = useTranslation('playlists');
 
   const exportAsJson = useCallback(async () => {
     try {
+      const currentPlaylist = playlist ?? (await loadPlaylist(playlistId));
+      if (!currentPlaylist) {
+        toast.error(t('exportError'));
+        return;
+      }
+
       const filePath = await save({
-        defaultPath: `${playlist?.name ?? 'playlist'}.json`,
+        defaultPath: `${currentPlaylist.name}.json`,
         filters: [{ name: 'JSON Files', extensions: ['json'] }],
       });
 
@@ -24,7 +31,10 @@ export const usePlaylistExport = (playlistId: string) => {
         return;
       }
 
-      const exportData = { version: PLAYLIST_EXPORT_VERSION, playlist };
+      const exportData = {
+        version: PLAYLIST_EXPORT_VERSION,
+        playlist: currentPlaylist,
+      };
       await writeTextFile(filePath, JSON.stringify(exportData, null, 2));
       toast.success(t('exportSuccess'));
     } catch (error) {
@@ -33,7 +43,7 @@ export const usePlaylistExport = (playlistId: string) => {
         error,
       });
     }
-  }, [playlist, t]);
+  }, [playlist, loadPlaylist, playlistId, t]);
 
   return { exportAsJson };
 };

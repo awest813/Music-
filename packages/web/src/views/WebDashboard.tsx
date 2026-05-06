@@ -7,6 +7,10 @@ import type { DashboardProvider } from '@nuclearplayer/plugin-sdk';
 import { EmptyState, Loader, ViewShell } from '@nuclearplayer/ui';
 
 import { useProviders } from '../hooks/useProviders';
+import {
+  DASHBOARD_WIDGETS,
+  DashboardWidgetEntry,
+} from './WebDashboard/dashboardWidgets';
 
 const DashboardEmptyState: FC = () => {
   const { t } = useTranslation('dashboard');
@@ -24,13 +28,8 @@ const DashboardEmptyState: FC = () => {
 
 const DashboardContent: FC<{
   isLoading: boolean;
-  providers: DashboardProvider[];
-}> = ({ isLoading, providers }) => {
-  const hasProviders = useMemo(
-    () => providers.some((provider) => provider.capabilities.length > 0),
-    [providers],
-  );
-
+  activeWidgets: DashboardWidgetEntry[];
+}> = ({ isLoading, activeWidgets }) => {
   if (isLoading) {
     return (
       <div className="flex flex-1 items-center justify-center">
@@ -39,20 +38,36 @@ const DashboardContent: FC<{
     );
   }
 
-  if (isEmpty(providers) || !hasProviders) {
+  if (isEmpty(activeWidgets)) {
     return <DashboardEmptyState />;
   }
 
-  return null;
+  return (
+    <div className="flex flex-col gap-8">
+      {activeWidgets.map(({ capability, component: Widget }) => (
+        <Widget key={capability} />
+      ))}
+    </div>
+  );
 };
 
 export const WebDashboard: FC = () => {
   const { t } = useTranslation('dashboard');
   const providers = useProviders('dashboard') as DashboardProvider[];
 
+  const activeWidgets = useMemo(() => {
+    const capabilities = new Set(
+      providers.flatMap((provider) => provider.capabilities),
+    );
+
+    return DASHBOARD_WIDGETS.filter((widget) =>
+      capabilities.has(widget.capability),
+    );
+  }, [providers]);
+
   return (
     <ViewShell data-testid="dashboard-view" title={t('title')}>
-      <DashboardContent isLoading={false} providers={providers} />
+      <DashboardContent isLoading={false} activeWidgets={activeWidgets} />
     </ViewShell>
   );
 };

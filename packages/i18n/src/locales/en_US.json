@@ -33,7 +33,9 @@
     "favoriteTracks": "Favorite tracks",
     "favoriteArtists": "Favorite artists",
     "playlists": "Playlists",
-    "sources": "Sources"
+    "sources": "Sources",
+    "plugins": "Plugins",
+    "themes": "Themes"
   },
   "sources": {
     "title": "Sources",
@@ -212,6 +214,15 @@
   "plugins": {
     "title": "Plugins",
     "addPlugin": "Add Plugin",
+    "installTitle": "Install Plugin",
+    "pluginUrl": "Plugin URL",
+    "cancel": "Cancel",
+    "install": "Install",
+    "noPlugins": "No plugins installed",
+    "disable": "Disable",
+    "enable": "Enable",
+    "uninstall": "Uninstall",
+    "installPlugin": "Install Plugin",
     "tabs": {
       "installed": "Installed",
       "store": "Store"
@@ -431,7 +442,9 @@
     "invalidRegexMessage": "Invalid regex pattern",
     "entryCount": "{{count}} entry",
     "entryCount_other": "{{count}} entries",
-    "exportSuccess": "Logs exported"
+    "exportSuccess": "Logs exported",
+    "webLogsTitle": "Browser Console",
+    "webLogsDescription": "Logs are available in your browser's developer console. Open DevTools (F12) and check the Console tab."
   },
   "changelog": {
     "title": "What's New",

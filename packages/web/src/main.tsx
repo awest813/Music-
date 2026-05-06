@@ -14,6 +14,8 @@ import './platform';
 
 import { routeTree } from './routeTree.gen';
 import { registerBuiltInCoreSettings } from './services/coreSettings';
+import { registerDemoProviders } from './services/demoProviders';
+import { providersHost } from './services/providersHost';
 import { initializeFavoritesStore } from './stores/favoritesStore';
 import { initializePlaylistStore } from './stores/playlistStore';
 import { initializeQueueStore } from './stores/queueStore';
@@ -32,6 +34,8 @@ const queryClient = new QueryClient();
 const bootstrap = async (): Promise<void> => {
   await initializeSettingsStore();
   registerBuiltInCoreSettings();
+  await registerDemoProviders();
+  providersHost.resolveActiveOnBootstrap();
   await Promise.all([
     initializeQueueStore(),
     initializeFavoritesStore(),

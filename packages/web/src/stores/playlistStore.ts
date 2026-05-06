@@ -15,6 +15,7 @@ import {
 import { MOSAIC_SIZE } from '@nuclearplayer/ui';
 
 import { platform } from '../platform';
+import { useQueueStore } from './queueStore';
 
 const PLAYLISTS_DIR = 'playlists';
 const indexStore = platform.storage.createStore(`${PLAYLISTS_DIR}/index.json`);
@@ -121,6 +122,7 @@ type PlaylistStore = {
       Pick<Playlist, 'name' | 'description' | 'tags' | 'artwork'>
     >,
   ) => Promise<void>;
+  saveQueueAsPlaylist: (name: string) => Promise<string>;
 };
 
 export const usePlaylistStore = create<PlaylistStore>((set, get) => ({
@@ -297,6 +299,35 @@ export const usePlaylistStore = create<PlaylistStore>((set, get) => ({
       playlists: new Map(state.playlists).set(id, updated),
       index,
     }));
+  },
+
+  saveQueueAsPlaylist: async (name: string) => {
+    const tracks = useQueueStore.getState().items.map((item) => item.track);
+    const now = new Date().toISOString();
+
+    const playlist: Playlist = {
+      id: uuidv4(),
+      name,
+      createdAtIso: now,
+      lastModifiedIso: now,
+      isReadOnly: false,
+      items: tracks.map((track) => ({
+        id: uuidv4(),
+        track,
+        addedAtIso: now,
+      })),
+    };
+
+    await savePlaylistById(playlist);
+    const index = upsertInIndex(get().index, toIndexEntry(playlist));
+    await saveIndex(index);
+
+    set((state) => ({
+      playlists: new Map(state.playlists).set(playlist.id, playlist),
+      index,
+    }));
+
+    return playlist.id;
   },
 
   deletePlaylist: async (id: string) => {

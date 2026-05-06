@@ -1,3 +1,5 @@
+import type { LoggerHost } from '@nuclearplayer/plugin-sdk';
+
 import { platform } from '../platform';
 
 export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error';
@@ -25,11 +27,16 @@ const createScopedLogger = (scope: string): ScopedLogger => {
 
 export const LOG_SCOPES = [
   'app',
+  'dashboard',
+  'discovery',
   'playback',
   'streaming',
   'plugins',
+  'http',
+  'settings',
   'queue',
   'metadata',
+  'playlists',
 ] as const;
 
 export type LogScope = (typeof LOG_SCOPES)[number];
@@ -45,3 +52,26 @@ export const Logger = LOG_SCOPES.reduce(
   },
   {} as Record<LogScope, ScopedLogger>,
 ) as LoggerType;
+
+export const webLogger = Logger;
+
+const sanitizePluginId = (pluginId: string): string => {
+  if (!pluginId || typeof pluginId !== 'string') {
+    return 'unknown';
+  }
+  return pluginId.replace(/[[\]\n\r]/g, '_');
+};
+
+export const createPluginLogger = (pluginId: string): ScopedLogger => {
+  const sanitized = sanitizePluginId(pluginId);
+  return createScopedLogger(`plugin:${sanitized}`);
+};
+
+export const createLoggerHost = (pluginId: string): LoggerHost => {
+  const pluginLogger = createPluginLogger(pluginId);
+  return {
+    log: (level, message) => {
+      void pluginLogger[level](message);
+    },
+  };
+};
