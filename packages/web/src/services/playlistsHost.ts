@@ -22,10 +22,8 @@ export const createPlaylistsHost = (): PlaylistsHost => ({
     usePlaylistStore.getState().reorderTracks(playlistId, from, to),
   importPlaylist: async (playlist: Playlist) =>
     usePlaylistStore.getState().importPlaylist(playlist),
-  saveQueueAsPlaylist: async () => {
-    // TODO: Implement save queue as playlist if needed
-    throw new Error('Not implemented');
-  },
+  saveQueueAsPlaylist: async (name: string) =>
+    usePlaylistStore.getState().saveQueueAsPlaylist(name),
   subscribe: (listener: PlaylistsListener) =>
     usePlaylistStore.subscribe((state) => listener(state.index)),
 });

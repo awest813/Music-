@@ -18,7 +18,10 @@ export const createDiscoveryHost = (): DiscoveryHost => ({
       resolvedId,
       'discovery',
     );
-    return provider!.getRecommendations(context, options);
+    if (!provider) {
+      throw new Error('No discovery provider available');
+    }
+    return provider.getRecommendations(context, options);
   },
 });
 

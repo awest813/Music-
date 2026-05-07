@@ -16,6 +16,8 @@ export const WebControls: FC = () => {
     useCoreSetting<boolean>('playback.shuffle');
   const [repeatMode, setRepeatMode] =
     useCoreSetting<RepeatMode>('playback.repeat');
+  const [discoveryEnabled, setDiscoveryEnabled] =
+    useCoreSetting<boolean>('playback.discovery');
   const hasDiscoveryProviders = useProviders('discovery').length > 0;
 
   const { goToNext, goToPrevious } = useQueueStore(
@@ -42,6 +44,10 @@ export const WebControls: FC = () => {
     setRepeatMode(modes[nextIndex]);
   };
 
+  const handleToggleDiscovery = () => {
+    setDiscoveryEnabled(!discoveryEnabled);
+  };
+
   return (
     <PlayerBar.Controls
       isPlaying={status === 'playing'}
@@ -52,7 +58,8 @@ export const WebControls: FC = () => {
       onPrevious={goToPrevious}
       onShuffleToggle={handleToggleShuffle}
       onRepeatToggle={handleToggleRepeat}
-      isDiscoveryActive={false}
+      onDiscoveryToggle={handleToggleDiscovery}
+      isDiscoveryActive={Boolean(discoveryEnabled)}
       showDiscovery={hasDiscoveryProviders}
       labels={{
         shuffleOn: t('shuffleOn'),

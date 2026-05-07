@@ -35,6 +35,7 @@ import {
   ViewShell,
 } from '@nuclearplayer/ui';
 
+import { importPlaylistFromJson } from '../services/playlistImport';
 import { usePlaylistStore } from '../stores/playlistStore';
 
 type PlaylistArtworkProps = {
@@ -237,22 +238,15 @@ const PlaylistsContent: FC = () => {
       try {
         const text = await file.text();
         const data = JSON.parse(text);
-        let playlist;
-        if (data.version && data.playlist) {
-          playlist = data.playlist;
-        } else {
-          playlist = data;
-        }
-        if (!playlist.name || !playlist.items) {
+        const playlists = importPlaylistFromJson(data);
+        if (playlists.length === 0) {
           toast.error(t('importInvalidFormat'));
           return;
         }
-        const newId = await importPlaylist(playlist);
-        toast.success(t('importSuccess'));
-        navigate({
-          to: '/playlists/$playlistId',
-          params: { playlistId: newId },
-        });
+        for (const playlist of playlists) {
+          await importPlaylist(playlist);
+        }
+        toast.success(t('importSuccessCount', { count: playlists.length }));
       } catch (error) {
         toast.error(
           t('importError', {

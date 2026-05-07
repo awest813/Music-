@@ -4,7 +4,7 @@ import { FC, useMemo } from 'react';
 
 import { useTranslation } from '@nuclearplayer/i18n';
 import { ArtworkSet, pickArtwork, Track, TrackRef } from '@nuclearplayer/model';
-import { Loader, ScrollableArea, StatChip } from '@nuclearplayer/ui';
+import { Loader, ScrollableArea, StatChip, ViewShell } from '@nuclearplayer/ui';
 
 import { ConnectedFavoriteButton } from '../components/ConnectedFavoriteButton';
 import { ConnectedTrackTable } from '../components/ConnectedTrackTable';
@@ -14,7 +14,8 @@ const mapTrackRefs = (refs: TrackRef[], albumArtwork?: ArtworkSet): Track[] =>
   refs.map((ref) => ({
     ...ref,
     artwork: ref.artwork ?? albumArtwork,
-    artists: ref.artists.map((artist) => ({ name: artist.name, roles: [] })),
+    artists:
+      ref.artists?.map((artist) => ({ name: artist.name, roles: [] })) ?? [],
   }));
 
 type AlbumSectionProps = {
@@ -55,9 +56,13 @@ const AlbumHeader: FC<AlbumSectionProps> = ({ providerId, albumId }) => {
   }
 
   const cover = pickArtwork(album.artwork, 'cover', 600);
-  const releaseYear = album.releaseDate
-    ? new Date(album.releaseDate.dateIso).getFullYear()
-    : undefined;
+  const releaseYear = (() => {
+    if (!album.releaseDate?.dateIso) {
+      return undefined;
+    }
+    const parsed = new Date(album.releaseDate.dateIso).getFullYear();
+    return Number.isNaN(parsed) ? undefined : parsed;
+  })();
   const trackCount = album.tracks?.length ?? 0;
 
   return (
@@ -83,7 +88,7 @@ const AlbumHeader: FC<AlbumSectionProps> = ({ providerId, albumId }) => {
             {album.title}
           </h1>
           <div className="text-foreground-secondary text-lg">
-            by {album.artists.map((artist) => artist.name).join(', ')}
+            by {album.artists?.map((artist) => artist.name).join(', ') ?? ''}
           </div>
         </div>
 
@@ -151,13 +156,21 @@ export const WebAlbum: FC = () => {
   const { providerId, albumId } = useParams({
     from: '/album/$providerId/$albumId',
   });
+  const { t } = useTranslation('album');
+  const { data: album } = useQuery({
+    queryKey: ['album-details', providerId, albumId],
+    queryFn: () => metadataHost.fetchAlbumDetails(albumId, providerId),
+    enabled: Boolean(providerId && albumId),
+  });
 
   return (
-    <ScrollableArea className="bg-background" data-testid="album-view">
-      <AlbumHeader providerId={providerId} albumId={albumId} />
-      <div className="p-6">
-        <AlbumTrackList providerId={providerId} albumId={albumId} />
-      </div>
-    </ScrollableArea>
+    <ViewShell data-testid="album-view" title={album?.title ?? t('title')}>
+      <ScrollableArea className="bg-background flex-1">
+        <AlbumHeader providerId={providerId} albumId={albumId} />
+        <div className="p-6">
+          <AlbumTrackList providerId={providerId} albumId={albumId} />
+        </div>
+      </ScrollableArea>
+    </ViewShell>
   );
 };

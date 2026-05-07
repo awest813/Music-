@@ -5,8 +5,8 @@ import { usePluginStore } from '../../stores/pluginStore';
 import { getSetting } from '../../stores/settingsStore';
 import { resolveErrorMessage } from '../../utils/logging';
 import { Logger } from '../logger';
-import { downloadAndExtractPlugin } from './pluginDownloader';
-import { listRegistryEntries } from './pluginRegistry';
+import { cleanupDownload, downloadAndExtractPlugin } from './pluginDownloader';
+import { listRegistryEntries, upsertRegistryEntry } from './pluginRegistry';
 
 export const checkAndUpdatePlugins = async (): Promise<void> => {
   const autoUpdate = getSetting('core.plugins.autoUpdate');
@@ -50,9 +50,20 @@ export const checkAndUpdatePlugins = async (): Promise<void> => {
       await usePluginStore.getState().unloadPlugin(entry.id);
       await usePluginStore.getState().loadPluginFromPath(extractedPath);
 
+      const now = new Date().toISOString();
+      await upsertRegistryEntry({
+        ...entry,
+        version: remote.version,
+        path: extractedPath,
+        lastUpdatedAt: now,
+      });
+
       if (wasEnabled) {
         await usePluginStore.getState().enablePlugin(entry.id);
       }
+
+      await cleanupDownload(entry.id);
+
       Logger.plugins.info(
         `Successfully updated plugin ${entry.id} to version ${remote.version}`,
       );
@@ -60,6 +71,7 @@ export const checkAndUpdatePlugins = async (): Promise<void> => {
       Logger.plugins.warn(
         `Failed to auto-update plugin ${entry.id}: ${resolveErrorMessage(error)}`,
       );
+      await cleanupDownload(entry.id);
     }
   }
 };

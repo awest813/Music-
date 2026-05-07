@@ -48,7 +48,7 @@ export const WebSearchContent: FC<WebSearchContentProps> = ({
 }) => {
   const { t } = useTranslation(['search', 'common']);
   const navigate = useNavigate();
-  const { addToQueue } = useQueueActions();
+  const { playNow } = useQueueActions();
 
   if (!provider) {
     return <NoProviderState />;
@@ -121,7 +121,7 @@ export const WebSearchContent: FC<WebSearchContentProps> = ({
               title={track.title}
               subtitle={track.artists[0]?.name}
               src={pickArtwork(track.artwork, 'thumbnail', 300)?.url}
-              onClick={() => addToQueue([track])}
+              onClick={() => playNow(track)}
             />
           ))}
         </CardGrid>

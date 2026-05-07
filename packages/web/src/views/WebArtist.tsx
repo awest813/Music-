@@ -29,7 +29,8 @@ import { metadataHost } from '../services/metadataHost';
 const mapTrackRefs = (refs: TrackRef[]): Track[] =>
   refs.map((ref) => ({
     ...ref,
-    artists: ref.artists.map((artist) => ({ name: artist.name, roles: [] })),
+    artists:
+      ref.artists?.map((artist) => ({ name: artist.name, roles: [] })) ?? [],
   }));
 
 type ArtistSectionProps = {

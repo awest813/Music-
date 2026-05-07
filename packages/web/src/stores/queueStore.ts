@@ -141,11 +141,16 @@ export const useQueueStore = create<QueueStore>((set, get) => ({
   },
 
   addAt: withPersistence((tracks: Track[], index: number) => {
+    if (tracks.length === 0) {
+      return;
+    }
+    const safeIndex = Math.max(0, Math.min(index, get().items.length));
+
     set(
       produce((state: QueueStore) => {
         const newItems = tracks.map(createQueueItem);
-        state.items.splice(index, 0, ...newItems);
-        if (index <= state.currentIndex) {
+        state.items.splice(safeIndex, 0, ...newItems);
+        if (safeIndex <= state.currentIndex) {
           state.currentIndex += newItems.length;
         }
       }),
@@ -182,12 +187,15 @@ export const useQueueStore = create<QueueStore>((set, get) => ({
 
   removeByIndices: withPersistence((indices: number[]) => {
     const currentIndex = get().currentIndex;
-    const currentIndexRemoved = indices.includes(currentIndex);
+    const uniqueIndices = [...new Set(indices)].filter(
+      (idx) => idx >= 0 && idx < get().items.length,
+    );
+    const currentIndexRemoved = uniqueIndices.includes(currentIndex);
 
     set(
       produce((state: QueueStore) => {
-        const indicesSet = new Set(indices);
-        const removedBeforeCurrent = indices.filter(
+        const indicesSet = new Set(uniqueIndices);
+        const removedBeforeCurrent = uniqueIndices.filter(
           (idx) => idx < state.currentIndex,
         ).length;
 
@@ -214,6 +222,16 @@ export const useQueueStore = create<QueueStore>((set, get) => ({
   }),
 
   reorder: withPersistence((fromIndex: number, toIndex: number) => {
+    const { items } = get();
+    if (
+      fromIndex < 0 ||
+      fromIndex >= items.length ||
+      toIndex < 0 ||
+      toIndex >= items.length
+    ) {
+      return;
+    }
+
     set(
       produce((state: QueueStore) => {
         const [movedItem] = state.items.splice(fromIndex, 1);

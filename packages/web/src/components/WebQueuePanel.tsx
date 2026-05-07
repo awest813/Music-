@@ -49,8 +49,14 @@ export const QueueHeaderActions: FC = () => {
   );
 
   const handleSaveAsPlaylist = useCallback(async () => {
-    const name = t('actions.saveQueueAsPlaylistDefaultName');
-    await saveQueueAsPlaylist(name);
+    const defaultName = t('actions.saveQueueAsPlaylistDefaultName');
+    const name = window.prompt(
+      t('actions.saveQueueAsPlaylistPrompt'),
+      defaultName,
+    );
+    if (name?.trim()) {
+      await saveQueueAsPlaylist(name.trim());
+    }
   }, [saveQueueAsPlaylist, t]);
 
   if (queue.items.length === 0) {

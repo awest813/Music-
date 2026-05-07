@@ -35,7 +35,8 @@
     "playlists": "Playlists",
     "sources": "Sources",
     "plugins": "Plugins",
-    "themes": "Themes"
+    "themes": "Themes",
+    "search": "Search"
   },
   "sources": {
     "title": "Sources",

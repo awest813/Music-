@@ -27,11 +27,24 @@ Nuclear is a free, open-source music player without ads or tracking. Search for 
 ```bash
 # Development
 pnpm dev                    # Run player in dev mode
+pnpm dev:web                # Run web app + streaming server in dev mode
 pnpm storybook              # Run Storybook
 
 # Build
 pnpm build                  # Build all packages
+pnpm build:web              # Build web app + streaming server
+pnpm serve:web              # Build and serve web app (production)
 pnpm tauri build            # Build Tauri app
+
+# Web app (run from packages/web/)
+cd packages/web
+pnpm dev                    # Dev server at http://localhost:5174
+pnpm build                  # Type-check + production build
+pnpm start                  # Build + serve production preview
+
+# Streaming server (required for YouTube audio)
+cd packages/server
+pnpm dev                    # Start at http://localhost:3473 (requires yt-dlp)
 
 # Quality
 pnpm lint                   # Lint all packages

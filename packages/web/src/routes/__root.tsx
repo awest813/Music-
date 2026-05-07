@@ -7,6 +7,7 @@ import {
   MusicIcon,
   PackageIcon,
   PaletteIcon,
+  SearchIcon,
   SettingsIcon,
   UserIcon,
 } from 'lucide-react';
@@ -60,6 +61,11 @@ const RootComponent = () => {
                   to="/dashboard"
                   icon={<GaugeIcon />}
                   label={t('dashboard')}
+                />
+                <SidebarNavigationItem
+                  to="/search"
+                  icon={<SearchIcon />}
+                  label={t('search')}
                 />
                 <SidebarNavigationItem
                   to="/favorites/albums"

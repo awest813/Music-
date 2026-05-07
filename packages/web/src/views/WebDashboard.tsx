@@ -54,8 +54,12 @@ const DashboardContent: FC<{
 export const WebDashboard: FC = () => {
   const { t } = useTranslation('dashboard');
   const providers = useProviders('dashboard') as DashboardProvider[];
+  const isLoading = providers.length === 0;
 
   const activeWidgets = useMemo(() => {
+    if (isLoading) {
+      return [];
+    }
     const capabilities = new Set(
       providers.flatMap((provider) => provider.capabilities),
     );
@@ -63,11 +67,11 @@ export const WebDashboard: FC = () => {
     return DASHBOARD_WIDGETS.filter((widget) =>
       capabilities.has(widget.capability),
     );
-  }, [providers]);
+  }, [providers, isLoading]);
 
   return (
     <ViewShell data-testid="dashboard-view" title={t('title')}>
-      <DashboardContent isLoading={false} activeWidgets={activeWidgets} />
+      <DashboardContent isLoading={isLoading} activeWidgets={activeWidgets} />
     </ViewShell>
   );
 };

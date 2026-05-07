@@ -19,7 +19,7 @@ const buildStreamUrl = (rawUrl: string): string =>
 const buildAudioSource = (candidate: StreamCandidate): AudioSource => {
   const { stream } = candidate;
   if (!stream) {
-    return { url: buildStreamUrl(candidate.id), protocol: 'http' };
+    throw new Error('Stream candidate has no resolved stream');
   }
 
   if (stream.protocol === 'hls') {
@@ -110,21 +110,16 @@ const resolveStreamWithFallback = async (
   return tryNext(candidates);
 };
 
-let activeController: AbortController | null = null;
-
 const resolveStream = async (
   item: QueueItem,
   t: TFunction,
-  autoPlay: boolean,
+  signal: AbortSignal,
+  isAutoPlay: boolean,
 ): Promise<void> => {
-  activeController?.abort();
-  activeController = new AbortController();
-  const { signal } = activeController;
-
   const { updateItemState } = useQueueStore.getState();
   const { setSrc, play, stop } = useSoundStore.getState();
 
-  if (autoPlay) {
+  if (isAutoPlay) {
     stop();
   }
   updateItemState(item.id, { status: 'loading', error: undefined });
@@ -160,7 +155,7 @@ const resolveStream = async (
 export const useStreamResolution = (): void => {
   const { t } = useTranslation('streaming');
   const currentItemIdRef = useRef<string | null>(null);
-  const hasResolvedOnceRef = useRef(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     const onCurrentItemChanged = (currentItem: QueueItem | undefined): void => {
@@ -168,9 +163,15 @@ export const useStreamResolution = (): void => {
         return;
       }
 
+      abortControllerRef.current?.abort();
+      abortControllerRef.current = new AbortController();
       currentItemIdRef.current = currentItem.id;
-      hasResolvedOnceRef.current = true;
-      void resolveStream(currentItem, t, true);
+      void resolveStream(
+        currentItem,
+        t,
+        abortControllerRef.current.signal,
+        true,
+      );
     };
 
     const unsubscribe = useQueueStore.subscribe((state) => {

@@ -4,7 +4,13 @@ import { useMemo, type FC } from 'react';
 
 import { useTranslation } from '@nuclearplayer/i18n';
 import { pickArtwork } from '@nuclearplayer/model';
-import { Card, CardGrid, EmptyState, ViewShell } from '@nuclearplayer/ui';
+import {
+  Card,
+  CardGrid,
+  EmptyState,
+  ScrollableArea,
+  ViewShell,
+} from '@nuclearplayer/ui';
 
 import { ConnectedTrackTable } from '../components/ConnectedTrackTable';
 import { useActiveProvider } from '../hooks/useActiveProvider';
@@ -38,7 +44,7 @@ export const FavoriteAlbums: FC = () => {
                 provider
                   ? () =>
                       navigate({
-                        to: `/album/${provider.id}/${entry.ref.source.id}`,
+                        to: `/album/${entry.ref.source.provider}/${entry.ref.source.id}`,
                       })
                   : undefined
               }
@@ -77,7 +83,7 @@ export const FavoriteArtists: FC = () => {
                 provider
                   ? () =>
                       navigate({
-                        to: `/artist/${provider.id}/${entry.ref.source.id}`,
+                        to: `/artist/${entry.ref.source.provider}/${entry.ref.source.id}`,
                       })
                   : undefined
               }
@@ -108,22 +114,24 @@ export const FavoriteTracks: FC = () => {
           className="flex-1"
         />
       ) : (
-        <ConnectedTrackTable
-          tracks={sortedTracks}
-          features={{
-            header: true,
-            filterable: true,
-            sortable: true,
-            playAll: true,
-            addAllToQueue: true,
-          }}
-          display={{
-            displayThumbnail: true,
-            displayArtist: true,
-            displayDuration: hasDuration,
-            displayQueueControls: true,
-          }}
-        />
+        <ScrollableArea className="flex-1 overflow-hidden">
+          <ConnectedTrackTable
+            tracks={sortedTracks}
+            features={{
+              header: true,
+              filterable: true,
+              sortable: true,
+              playAll: true,
+              addAllToQueue: true,
+            }}
+            display={{
+              displayThumbnail: true,
+              displayArtist: true,
+              displayDuration: hasDuration,
+              displayQueueControls: true,
+            }}
+          />
+        </ScrollableArea>
       )}
     </ViewShell>
   );

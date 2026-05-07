@@ -250,8 +250,12 @@ export const usePlaylistStore = create<PlaylistStore>((set, get) => ({
   },
 
   reorderTracks: async (playlistId: string, from: number, to: number) => {
-    const playlist = get().playlists.get(playlistId);
+    const playlist = await get().loadPlaylist(playlistId);
     if (!playlist) {
+      return;
+    }
+
+    if (from === to) {
       return;
     }
 

@@ -17,7 +17,9 @@
     "clean": "turbo clean && rm -rf node_modules/.cache",
     "type-check": "turbo type-check",
     "dev:web": "turbo dev --filter=@nuclearplayer/web --filter=@nuclearplayer/server",
-    "build:web": "turbo build --filter=@nuclearplayer/web --filter=@nuclearplayer/server"
+    "build:web": "turbo build --filter=@nuclearplayer/web --filter=@nuclearplayer/server",
+    "serve:web": "pnpm build:web && pnpm --filter @nuclearplayer/server start",
+    "check:web": "pnpm --filter @nuclearplayer/web type-check && pnpm --filter @nuclearplayer/web lint"
   },
   "devDependencies": {
     "@eslint/css": "^1.1.0",

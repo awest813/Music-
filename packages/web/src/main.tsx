@@ -53,16 +53,22 @@ if (!rootElement) {
   throw new Error('Root element not found');
 }
 
-bootstrap().then(() => {
-  ReactDOM.createRoot(rootElement).render(
-    <React.StrictMode>
-      <PlatformProvider platform={webPlatform}>
-        <I18nextProvider i18n={i18n}>
-          <QueryClientProvider client={queryClient}>
-            <RouterProvider router={router} />
-          </QueryClientProvider>
-        </I18nextProvider>
-      </PlatformProvider>
-    </React.StrictMode>,
-  );
-});
+bootstrap()
+  .then(() => {
+    ReactDOM.createRoot(rootElement).render(
+      <React.StrictMode>
+        <PlatformProvider platform={webPlatform}>
+          <I18nextProvider i18n={i18n}>
+            <QueryClientProvider client={queryClient}>
+              <RouterProvider router={router} />
+            </QueryClientProvider>
+          </I18nextProvider>
+        </PlatformProvider>
+      </React.StrictMode>,
+    );
+  })
+  .catch((error: unknown) => {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    rootElement.innerHTML = `<div style="padding:2rem;font-family:sans-serif"><h1>Failed to start</h1><p>${message}</p></div>`;
+    console.error('Bootstrap failed:', error);
+  });

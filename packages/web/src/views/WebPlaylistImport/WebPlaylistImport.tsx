@@ -1,7 +1,13 @@
 import { useParams, useSearch } from '@tanstack/react-router';
 import { useCallback, useMemo, type FC } from 'react';
 
-import { Loader, ScrollableArea, ViewShell } from '@nuclearplayer/ui';
+import { pickArtwork, type Playlist } from '@nuclearplayer/model';
+import {
+  Loader,
+  MOSAIC_SIZE,
+  ScrollableArea,
+  ViewShell,
+} from '@nuclearplayer/ui';
 
 import { ConnectedTrackTable } from '../../components/ConnectedTrackTable';
 import { PlaylistDetailHeader } from '../WebPlaylistDetail/PlaylistDetailHeader';
@@ -75,18 +81,28 @@ export const WebPlaylistImport: FC = () => {
   );
 };
 
-function buildThumbnails(playlist: {
-  items: { track: { artwork?: { items: { url: string }[] } } }[];
-}): string[] {
+function buildThumbnails(playlist: Playlist): string[] {
+  const customUrl = pickArtwork(playlist.artwork, 'cover', 300)?.url;
+  if (customUrl) {
+    return [customUrl];
+  }
   const urls: string[] = [];
   for (const item of playlist.items) {
-    const artwork = item.track.artwork?.items;
-    if (artwork?.length) {
-      urls.push(artwork[0].url);
+    const itemUrl = pickArtwork(item.track.artwork, 'cover', 300)?.url;
+    if (itemUrl && !urls.includes(itemUrl)) {
+      urls.push(itemUrl);
     }
-    if (urls.length >= 4) {
+    if (urls.length >= MOSAIC_SIZE) {
       break;
     }
+  }
+  if (urls.length === 0) {
+    const firstUrl = pickArtwork(
+      playlist.items[0]?.track.artwork,
+      'cover',
+      300,
+    )?.url;
+    return firstUrl ? [firstUrl] : [];
   }
   return urls;
 }
